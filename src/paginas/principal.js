@@ -1,11 +1,10 @@
 import React from 'react';
-import { Typography } from '@material-ui/core';
+import Menu from '../componentes/menu';
 
 
-
-export default function LogIn(){
+export default function Principal(){
 
     return(
-        <Typography>PRINCIPAL</Typography>
+        <Menu/>
     )
 }

@@ -69,7 +69,7 @@ const loginStyles = makeStyles((theme) => ({
     },
     contenedorMovil:{
         '& .input':{
-            [theme.breakpoints.only('xs')]: {
+            [theme.breakpoints.down('sm')]: {
                 width:330
               },
             
