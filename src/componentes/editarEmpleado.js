@@ -56,7 +56,7 @@ const empleadoStyles = makeStyles((theme) => ({
     }
 }))
 
-export default function AltaEmpleado(){
+export default function EditarEmpleado(){
     const classes = empleadoStyles();
     const [datos,setDatos] = React.useState({});
     const [fechaSeleccionada, setFechaSeleccionada] = React.useState(moment().format("YYYY-MM-DD"));
@@ -105,7 +105,7 @@ export default function AltaEmpleado(){
     return(
         <Grid container className={classes.contenedor}>
             <Grid item lg={10} md={10} sm={10} xs={10} >
-                <Typography className={classes.txtTitulo}>Alta de empleados</Typography>
+                <Typography className={classes.txtTitulo}>Edición de empleados</Typography>
                 <Grid item lg={12} md={12} sm={12} xs={12} >
                     <Grid container className={classes.contenedor}>
                     <form noValidate={true} onSubmit={valida}>

@@ -13,3 +13,11 @@ export function NumerosLetras (evento) {
 
     }
 }
+
+export function SoloNumeros (evento) {
+    const pattern = /^[0-9]*$/;
+    if (!pattern.test(evento.target.value)) {
+        evento.target.value = evento.target.value.replace(/[^0-9]/g, "");
+
+    }
+}

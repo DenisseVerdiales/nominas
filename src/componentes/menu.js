@@ -67,7 +67,8 @@ const useStyles = makeStyles((theme) => ({
     '& :hover':{
         background: '#e0dacd', 
     },
-    marginTop:40
+    maxHeight: 135,
+    padding: '10px 0px'
   },
   toolbarOpen:{
     width: drawerWidth + 30,
@@ -237,7 +238,6 @@ const Menu = () => {
       {btnOpciones === 5 &&(
           <ReporteMovimiento/>
       )}
-    
     </main>
   </div>
   );
