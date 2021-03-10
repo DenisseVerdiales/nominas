@@ -18,6 +18,7 @@ import {
 } from '@material-ui/core';
 import { makeStyles,withStyles } from '@material-ui/core/styles';
 import {MdModeEdit,AiTwotoneDelete} from 'react-icons/all';
+import swal from 'sweetalert';
 import {soloLetras,SoloNumeros} from '../utilidades/validar';
 import EditarEmpleado from '../componentes/editarEmpleado';
 
@@ -116,7 +117,26 @@ export default function BuscarEmpleado(){
       };
 
     const elimiarRegistro = (dato)=>{
-        alert("Deseas ELiminar",dato);
+        swal({
+            title: "",
+            text: "Estas seguro que deseas eliminar el empleado?",
+            icon: "warning",
+            buttons: {
+                cancel: "Cancelar",
+                confirm: {
+                  text: "Eliminar",
+                  value: "catch",
+                }
+            },
+            dangerMode: true,
+          })
+          .then((value) => {
+            if (value) {
+              swal("Poof! Your imaginary file has been deleted!", {
+                icon: "success",
+              });
+            } 
+          });
     }
 
     const editarRegistro = (dato)=>{

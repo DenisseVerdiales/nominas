@@ -1,8 +1,21 @@
 import React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import { Typography, Button, Grid, Hidden, TextField  } from '@material-ui/core';
+import { 
+    Typography, 
+    Button, 
+    Grid, 
+    Hidden, 
+    TextField, 
+    FormControl,
+    InputLabel,
+    Input, 
+    InputAdornment,
+    IconButton  
+} from '@material-ui/core';
 import { FaUserAlt,RiLockPasswordFill} from 'react-icons/all';
 import { useHistory } from "react-router-dom";
+import {Visibility,VisibilityOff} from '@material-ui/icons';
+import swal from 'sweetalert';
 import clsx from 'clsx';
 import logo from '../assets/imagenes/logo.png'
 
@@ -53,6 +66,9 @@ const loginStyles = makeStyles((theme) => ({
         },
         '& .MuiInput-underline:after':{
             borderBottom:'2px solid #c0b6a1 !important'
+        },
+        '& .MuiInput-input':{
+            color:'#fff',
         }
     },
     btnEntrar:{
@@ -74,16 +90,38 @@ const loginStyles = makeStyles((theme) => ({
               },
             
         }
+    },
+    input:{
+        width: '80%'
     }
 }));
 
 export default function LogIn(){
     const classes = loginStyles();
-
+    const [usuario, setUsuario] = React.useState('');
+    const [contrasena, setContrasena] = React.useState('');
+    const [mostrarContrasena, setMostrarContrasena] = React.useState(false);
     let history = useHistory();
 
+    const ManejarmostrarContrasena = () => {
+        setMostrarContrasena(!mostrarContrasena)
+    };
+    
+    const MouseDownContrasena = (event) => {
+    event.preventDefault();
+    };
     const validarLogIn = () => {
-        history.replace("/principal");
+        if(usuario == '' || contrasena == ''){
+            swal({
+                title: "Campos vacíos",
+                text: "Debes capturar el usuario y/o contraseña.",
+                icon: "warning",
+                button: "Aceptar",
+              });
+        }else{
+            history.replace("/principal");
+        }
+        
     }
 
     return(
@@ -108,15 +146,36 @@ export default function LogIn(){
                                         <FaUserAlt className={classes.iconoUsuario}/>
                                     </Grid>
                                     <Grid item className={clsx(classes.input,'input')}>
-                                        <TextField id="input-with-icon-grid" label="Usuario" className={clsx(classes.txtinput,'input')} />
+                                        <TextField id="input-with-icon-grid" label="Usuario" onChange={(e)=>setUsuario(e.target.value)} value={usuario} className={clsx(classes.txtinput,'input')} />
                                     </Grid>
                                 </Grid>
                                 <Grid container spacing={1} alignItems="flex-end" className={classes.inputUsuario}>
                                     <Grid item>
-                                        <RiLockPasswordFill className={classes.iconoUsuario}/>
+                                    <RiLockPasswordFill className={classes.iconoUsuario}/>
                                     </Grid>
                                     <Grid item className={clsx(classes.input,'input')}>
-                                        <TextField id="input-with-icon-grid" label="Contraseña" className={clsx(classes.txtinput,'input')}/>
+                                        <FormControl className={clsx(classes.txtinput,'input')}>
+                                            
+                                        <InputLabel htmlFor="standard-adornment-password">Contraseña</InputLabel>
+                                        <Input
+                                            id="standard-adornment-password"
+                                            type={mostrarContrasena ? 'text' : 'password'}
+                                            value={contrasena} 
+                                            onChange={(e)=>setContrasena(e.target.value)}
+                                            endAdornment={
+                                            <InputAdornment position="end">
+                                                <IconButton
+                                                aria-label="toggle password visibility"
+                                                onClick={ManejarmostrarContrasena}
+                                                onMouseDown={MouseDownContrasena}
+                                                className={classes.iconoUsuario}
+                                                >
+                                                {mostrarContrasena? <Visibility /> : <VisibilityOff />}
+                                                </IconButton>
+                                            </InputAdornment>
+                                            }
+                                        />
+                                        </FormControl>
                                     </Grid>
                                 </Grid>
                                 <Grid container spacing={1} justify="center" >

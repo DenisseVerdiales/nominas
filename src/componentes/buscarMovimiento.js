@@ -19,6 +19,7 @@ import {
 import { makeStyles,withStyles } from '@material-ui/core/styles';
 import {MdModeEdit,AiTwotoneDelete} from 'react-icons/all';
 import moment from "moment";
+import swal from 'sweetalert';
 import {soloLetras} from '../utilidades/validar';
 import EditarEmpleado from '../componentes/editarEmpleado';
 
@@ -118,7 +119,26 @@ export default function BuscarMovimiento(){
       };
 
     const elimiarRegistro = (dato)=>{
-        alert("Deseas ELiminar",dato);
+        swal({
+            title: "",
+            text: "Estas seguro que deseas eliminar el movimiento?",
+            icon: "warning",
+            buttons: {
+                cancel: "Cancelar",
+                confirm: {
+                  text: "Eliminar",
+                  value: "catch",
+                }
+            },
+            dangerMode: true,
+          })
+          .then((value) => {
+            if (value) {
+              swal("Poof! Your imaginary file has been deleted!", {
+                icon: "success",
+              });
+            } 
+          });
     }
 
     const editarRegistro = (dato)=>{

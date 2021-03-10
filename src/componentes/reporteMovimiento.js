@@ -10,7 +10,9 @@ import {
     Button
 } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
+//import { PDFDownloadLink, Document, Page } from '@react-pdf/renderer'
 import {SoloNumeros} from '../utilidades/validar';
+//import ReportePDF from './reportePDF';
 
 const reporteStyles = makeStyles((theme) => ({
     contenedor:{
@@ -71,6 +73,17 @@ const reporteStyles = makeStyles((theme) => ({
 
 export default function ReporteMovimiento(){
     const classes = reporteStyles();
+    const [datos,setDatos] = React.useState({
+        Nombre:"Juan Lopez",
+        TipoEmpleado:"Interno",
+        Rol:"Auxiliar",
+        JornadaLaboral:"8 hrs",
+        SueldoBase: 7200,
+        BonoEntrega: 1500,
+        BonoTurno:2400,
+        SueldoBruto:11544,
+        SueldoNeto:10505.04
+    });
 
     return(
         <Grid container className={classes.contenedor}>
@@ -120,37 +133,40 @@ export default function ReporteMovimiento(){
                     </Grid>
                     <Grid item lg={12} md={12} sm={12} xs={12} >
                         <Grid item lg={12} md={12} sm={12} xs={12} >
-                            <Typography className={classes.txtTituloReporte}>Nombre completo: </Typography>
+                            <Typography className={classes.txtTituloReporte}>Nombre completo: {datos.Nombre} </Typography>
                         </Grid>
                         <Grid item lg={12} md={12} sm={12} xs={12} >
-                            <Typography className={classes.txtTituloReporte}>Tipo de empleado: </Typography>
+                            <Typography className={classes.txtTituloReporte}>Tipo de empleado: {datos.TipoEmpleado}</Typography>
                         </Grid>
                         <Grid item lg={12} md={12} sm={12} xs={12} >
-                            <Typography className={classes.txtTituloReporte}>Rol:</Typography>
+                            <Typography className={classes.txtTituloReporte}>Rol: {datos.Rol}</Typography>
                         </Grid>
                         <Grid item lg={12} md={12} sm={12} xs={12} >
-                            <Typography className={classes.txtTituloReporte}>Jornada laboral: </Typography>
+                            <Typography className={classes.txtTituloReporte}>Jornada laboral: {datos.JornadaLaboral}</Typography>
                         </Grid>
                         <Grid item lg={12} md={12} sm={12} xs={12} >
-                            <Typography className={classes.txtTituloReporte}>Sueldo base mensual: </Typography>
+                            <Typography className={classes.txtTituloReporte}>Sueldo base mensual: {datos.SueldoBase}</Typography>
                         </Grid>
                         <Grid item lg={12} md={12} sm={12} xs={12}>
-                            <Typography className={classes.txtTituloReporte}>Bono por entrega: </Typography>
+                            <Typography className={classes.txtTituloReporte}>Bono por entrega: {datos.BonoEntrega}</Typography>
                         </Grid>
                         <Grid item lg={12} md={12} sm={12} xs={12} >
-                            <Typography className={classes.txtTituloReporte}>Bono por cubrir turno: </Typography>
+                            <Typography className={classes.txtTituloReporte}>Bono por cubrir turno: {datos.BonoTurno}</Typography>
                         </Grid>
                         <Grid item lg={12} md={12} sm={12} xs={12} >
-                            <Typography className={classes.txtTituloReporte}>Sueldo bruto mensual: </Typography>
+                            <Typography className={classes.txtTituloReporte}>Sueldo bruto mensual: {datos.SueldoBruto}</Typography>
                         </Grid>
                         <Grid item lg={12} md={12} sm={12} xs={12} >
-                            <Typography className={classes.txtTituloReporte}>Sueldo neto mensual: </Typography>
+                            <Typography className={classes.txtTituloReporte}>Sueldo neto mensual: {datos.SueldoNeto}</Typography>
                         </Grid>
                     </Grid>
                     <Grid item lg={8} md={8} sm={10} xs={10} className={classes.contenedorPrincipalBtnExportar}>
                         <Grid container className={classes.contenedorBtnExportar}>
                             <Grid item lg={10} md={10} sm={10} xs={10} >
-                                <Button variant="contained" type="submit" className={classes.btnExportar}>Exportar</Button>
+                                
+                                <Grid item>
+                            
+                                </Grid>
                             </Grid>
                         </Grid>
                         </Grid>
