@@ -62,7 +62,6 @@ const useStyles = makeStyles((theme) => ({
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'flex-end',
-    padding: theme.spacing(0, 1),
     zIndex:1201,
     '& :hover':{
         background: '#e0dacd', 
