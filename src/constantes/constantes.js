@@ -1,4 +1,4 @@
-const URL_CONEXION = 'http://192.168.8.11:3000/';
+const URL_CONEXION = 'http://localhost:3000/';
 const URL_API = 'api/';
 
 // Sesion
@@ -9,6 +9,12 @@ const URL_CERRAR_SESION = 'salir/';
 // Llaves Async Storage
 const USUARIO_SESION = 'usuarioSesion';
 
+//Empleados
+const BASE_EMPLEADO = 'empleados/';
+
+//Tipo Empleado
+const BASE_TIPO_EMPLEADO = 'tipoEmpleado/';
+
 
 export {
     URL_CONEXION,
@@ -16,5 +22,7 @@ export {
     BASE_SESION,
     URL_INICIAR_SESION,
     URL_CERRAR_SESION,
-    USUARIO_SESION
+    USUARIO_SESION,
+    BASE_EMPLEADO,
+    BASE_TIPO_EMPLEADO
 }

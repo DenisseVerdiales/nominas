@@ -17,6 +17,7 @@ import { almacenarObjetoStorage, consultarObjetoStorage } from '../../utilidades
 
 
 export const loginUsuario = (usuario) => (dispatch) => {
+  console.log(usuario);
   dispatch({ type: START_AJAX });
   return new Promise(
     (resolve, reject) => {
@@ -26,32 +27,18 @@ export const loginUsuario = (usuario) => (dispatch) => {
           contrasena: md5(usuario.contrasena)
         })
         .then(({ data }) => {
-          alert(data);
+          console.log("Respuesta",data);
           if (data) {
-           // if (data.EmpleadoID) {
               almacenarObjetoStorage(USUARIO_SESION, data);
-              axiosConfig.defaults.headers.common.APITOKEN = data.Token;
+              axiosConfig.defaults.headers.common.APITOKEN = data.token;
               dispatch({ type: INICIAR_SESION, payload: data });
-              resolve();
-           // } else {
-              //AlertaAceptar('', 'El usuario introducido no tiene un empleado asignado, favor de verificar.');
-             // reject();
-           // }
+              resolve(true);
           } else {
-            //AlertaAceptar('', 'El usuario introducido no existe');
-            reject();
+            reject(false);
           }
         })
         .catch((error) => {
-          console.log('ERROR', error);
-          if (error.response.status === 404) {
-            //AlertaAceptar('', 'El usuario y/o contraseña introducidos son incorrectos, favor de verificar.');
-          } else if (error.response.status === 403) {
-            //AlertaAceptar('', 'Este dispositivo esta vinculado a otro usuario.');
-          } else {
-            //AlertaAceptar('', 'Se ha producido un error al iniciar sesión.');
-          }
-          reject();
+          reject(error);
         })
         .finally(() => dispatch({ type: END_AJAX }));
     },
@@ -81,7 +68,7 @@ export const logoutUsuario = (usuario, CambiarRuta) => (dispatch) => {
 export const verificarSesionLocal = () => (dispatch) => new Promise((resolve, reject) => {
   consultarObjetoStorage(USUARIO_SESION).then((usuarioSesion) => {
     if (usuarioSesion && Object.getOwnPropertyNames(usuarioSesion).length !== 0) {
-      axiosConfig.defaults.headers.common.APITOKEN = usuarioSesion.Token;
+      axiosConfig.defaults.headers.common.APITOKEN = usuarioSesion.token;
       dispatch({ type: VALIDAR_SESION_LOCAL, payload: usuarioSesion });
       resolve(true);
     } else resolve(false);

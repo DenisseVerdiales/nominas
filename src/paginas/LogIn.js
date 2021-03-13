@@ -1,8 +1,7 @@
 import React,{Component} from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { useHistory as history} from "react-router-dom";
-import { makeStyles,withStyles } from '@material-ui/core/styles';
+import { withStyles } from '@material-ui/core/styles';
 import { 
     Typography, 
     Button, 
@@ -19,6 +18,7 @@ import { FaUserAlt,RiLockPasswordFill} from 'react-icons/all';
 import {Visibility,VisibilityOff} from '@material-ui/icons';
 import swal from 'sweetalert';
 import clsx from 'clsx';
+import PropTypes from "prop-types";
 import * as UsuarioActions from '../store/Acciones/usuarioActions';
 import logo from '../assets/imagenes/logo.png'
 
@@ -99,6 +99,9 @@ const loginStyles = theme =>  ({
 });
 
 class Login extends Component {
+    static contextTypes = {
+        router: PropTypes.object
+    }
     constructor(props) {
         super(props);
     
@@ -126,9 +129,40 @@ class Login extends Component {
                 contrasena,
             };
             usuario.loginUsuario(datosLogin)
-            .then(() => {
-                history.replace("/principal");
-            });
+            .then((respuesta) => {
+                console.log(respuesta);
+                if(respuesta){
+                    this.context.router.history.replace("/principal");
+                   
+                }else{
+                    swal({
+                        title: "",
+                        text: "El usuario ingresado no existe.",
+                        icon: "warning",
+                        button: "Aceptar",
+                    });
+                }
+                
+            })
+            .catch((error) => {
+                if(error.response){
+                    if (error.response.status === 404) {
+                        swal({
+                            title: "",
+                            text: "El usuario y/o contraseña introducidos son incorrectos, favor de verificar.",
+                            icon: "warning",
+                            button: "Aceptar",
+                        });
+                    } else {
+                        swal({
+                            title: "",
+                            text: "Ocurrió un error al iniciar sesión. Intente más tarde.",
+                            icon: "error",
+                            button: "Aceptar",
+                        });
+                    }
+                  }
+            })
         }
     
     }
