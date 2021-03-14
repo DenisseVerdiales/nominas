@@ -8,12 +8,22 @@ const URL_CERRAR_SESION = 'salir/';
 
 // Llaves Async Storage
 const USUARIO_SESION = 'usuarioSesion';
+const CBOTIPOEMPLEADO = 'CBOTIPOEMPLEADO';
+const CBOJORNADA = 'CBOJORNADA';
+const CBOROL = 'CBOROL';
+const OPCIONMENU = 'OPCIONMENU';
 
 //Empleados
 const BASE_EMPLEADO = 'empleados/';
 
 //Tipo Empleado
 const BASE_TIPO_EMPLEADO = 'tipoEmpleado/';
+
+//Jornada Laboral
+const BASE_JORNADA_LABORAL = 'jornadaLaboral/';
+
+//ROl
+const BASE_ROL = 'rol/'
 
 
 export {
@@ -24,5 +34,11 @@ export {
     URL_CERRAR_SESION,
     USUARIO_SESION,
     BASE_EMPLEADO,
-    BASE_TIPO_EMPLEADO
+    BASE_TIPO_EMPLEADO,
+    BASE_JORNADA_LABORAL,
+    BASE_ROL,
+    CBOTIPOEMPLEADO,
+    CBOJORNADA,
+    CBOROL,
+    OPCIONMENU
 }

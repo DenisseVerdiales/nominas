@@ -15,7 +15,10 @@ import PropTypes from "prop-types";
 import moment from "moment";
 import swal from 'sweetalert';
 import * as EmpleadoActions from '../store/Acciones/empleadoActions';
+import * as UsuarioActions from '../store/Acciones/usuarioActions';
 import {soloLetras, NumerosLetras} from '../utilidades/validar';
+import { almacenarObjetoStorage, consultarObjetoStorage } from '../utilidades/asyncStorage';
+import { CBOTIPOEMPLEADO,CBOJORNADA,CBOROL} from '../constantes/constantes';
 
 const empleadoStyles = theme =>  ({
     contenedor:{
@@ -70,26 +73,140 @@ class AltaEmpleado extends Component {
             datos: {},
             fechaSeleccionada: moment().format("YYYY-MM-DD"),
             errores:{},
-            tipoEmpleado:[]
+            tipoEmpleado:[],
+            jornada:[],
+            rol:[]
         };
-        //this.validarLogIn = this.validarLogIn.bind(this);
     }
 
-   // const classes = empleadoStyles();
-   // const [datos,setDatos] = React.useState({});
-   // const [fechaSeleccionada, setFechaSeleccionada] = React.useState(moment().format("YYYY-MM-DD"));
-   // const [errores, setErrores] = React.useState({});
    componentDidMount() {
-    this.obtenerTipoEmpleado();
-  }
+        this.validarCombos();
+        this.verificarSesionLocal();
+    }
+
     obtenerTipoEmpleado(){
         const { actions: { empleado } } = this.props;
+        console.log("TIPOEMPLEADO");
         empleado.obtenerTipoEmpleado()
-        .then((resultado)=>{
-            console.log(resultado);
-            this.setState({tipoEmpleado:resultado});
+        .then((tipoEmp)=>{
+            console.log("tipoEmp",tipoEmp);
+            almacenarObjetoStorage(CBOTIPOEMPLEADO, tipoEmp);
+            this.setState({tipoEmpleado: tipoEmp});
+            empleado.obtenerJornadaLaboral()
+            .then((cboJornada)=>{
+                console.log("JORNADA",cboJornada);
+                almacenarObjetoStorage(CBOJORNADA, cboJornada);
+                this.setState({jornada: cboJornada})
+                empleado.obtenerRol()
+                .then((cboRol)=>{
+                    console.log("ROL");
+                    almacenarObjetoStorage(CBOROL, cboRol);
+                    this.setState({rol: cboRol})
+                }).catch((error)=>{
+                    console.log("ERROR ROL",error);
+                })
+            }).catch((error)=>{
+                console.log("ERROR JORNADA",error);
+            })
+             
+        }).catch((error)=>{
+            console.log("ERROR TIPO EMPLEADO",error);
         })
+        
     }
+
+    validarCombos() {
+        console.log("EN EL STORAGE");
+        const { actions: { empleado } } = this.props;
+        consultarObjetoStorage(CBOTIPOEMPLEADO)
+          .then((tipo) => {
+              console.log("tipo",tipo);
+            if (tipo && Object.getOwnPropertyNames(tipo).length !== 0) {
+                this.setState({tipoEmpleado:tipo});
+               
+            }else{
+                empleado.obtenerTipoEmpleado()
+                .then((tipoEmp)=>{
+                    console.log("tipoEmp",tipoEmp);
+                    almacenarObjetoStorage(CBOTIPOEMPLEADO, tipoEmp);
+                    this.setState({tipoEmpleado: tipoEmp});
+                     
+                }).catch((error)=>{
+                    console.log("ERROR TIPO EMPLEADO",error);
+                })
+            }
+            consultarObjetoStorage(CBOJORNADA)
+            .then((jornadaL) => {
+                console.log("jornada",jornadaL)
+                if (jornadaL && Object.getOwnPropertyNames(jornadaL).length !== 0) {
+                    this.setState({jornada:jornadaL});
+                }else{
+                    empleado.obtenerJornadaLaboral()
+                    .then((cboJornada)=>{
+                        console.log("JORNADA",cboJornada);
+                        almacenarObjetoStorage(CBOJORNADA, cboJornada);
+                        this.setState({jornada: cboJornada})
+                    }).catch((error)=>{
+                        console.log("ERROR JORNADA",error);
+                    })
+                }
+                    consultarObjetoStorage(CBOROL)
+                    .then((cboRol) => {
+                        if (cboRol && Object.getOwnPropertyNames(cboRol).length !== 0) {
+                            this.setState({rol:cboRol});
+                        }else{
+                            empleado.obtenerRol()
+                            .then((cboRol)=>{
+                                console.log("ROL");
+                                almacenarObjetoStorage(CBOROL, cboRol);
+                                this.setState({rol: cboRol})
+                            }).catch((error)=>{
+                                console.log("ERROR ROL",error);
+                            })
+                        }
+                    })
+                    .catch((error) => {
+                        swal({
+                            title: "",
+                            text: error,
+                            icon: "warning",
+                            button: "Aceptar",
+                        });
+                    });
+                
+            })
+            .catch((error) => {
+                swal({
+                    title: "",
+                    text: error,
+                    icon: "warning",
+                    button: "Aceptar",
+                });
+            });
+            
+          })
+          .catch((error) => {
+            swal({
+                title: "",
+                text: error,
+                icon: "warning",
+                button: "Aceptar",
+            });
+            
+        });
+      }
+
+     
+      
+       
+    verificarSesionLocal() {
+        
+    const { actions: { usuario } } = this.props;
+    usuario.verificarSesionLocal().then(()=>{
+        console.log("SESION LOCAL STORAGE");
+    })
+    }
+
     valida = (e) => {
         e.preventDefault();
         const { actions: { empleado },Usuario } = this.props;
@@ -125,10 +242,12 @@ class AltaEmpleado extends Component {
             apellidoMaterno: datos.apellidoMaterno,
             fechaNacimiento: datos.fechaNac,
             domicilio: datos.domicilio ? datos.domicilio : '',
-            tipoEmpleadoId: datos.tipoEmpleados,
-            rolId: datos.rol,
-            jornadaLaboralId: datos.jornadaLaboral,
+            tipoEmpleadoId: Number.parseInt(datos.tipoEmpleados),
+            rolId: Number.parseInt(datos.rol),
+            jornadaLaboralId: Number.parseInt(datos.jornadaLaboral),
+            usuarioCreacionId: Number.parseInt(Usuario.usuarioLogin.id)
          }
+         console.log("datosEmpleado",datosEmpleado);
          empleado.guardarEmpleado(datosEmpleado)
          .then((resultado)=>{
              if(resultado){
@@ -166,8 +285,9 @@ class AltaEmpleado extends Component {
 
     
     render(){
-        const {errores,datos,fechaSeleccionada} = this.state;
-        const { classes} = this.props;
+        const {errores,datos,fechaSeleccionada,tipoEmpleado,jornada,rol} = this.state;
+        const { classes,Empleado,Usuario} = this.props;
+        console.log("Usuario",Usuario);
 
         const handleChange = (e) => {
             const {datos}=this.state;
@@ -177,7 +297,8 @@ class AltaEmpleado extends Component {
 
         const onDateChange = (value) => {
             const {datos}=this.state;
-            let fecha = {...datos,'fechaNac': value };
+            let fecha = {...datos,'fechaNac': value.target.value };
+            console.log("fecha",fecha);
             this.setState({
                 datos: fecha,
                 fechaSeleccionada:value
@@ -259,17 +380,21 @@ class AltaEmpleado extends Component {
                             <FormControl className={classes.selectTipoEmp}>
                                 <InputLabel id="demo-simple-select-label">Tipo Empleado</InputLabel>
                                 <Select
+                                displayEmpty
                                 labelId="demo-simple-select-label"
                                 id="tipoEmpleados"
                                 name="tipoEmpleados"
                                 required
                                 error={errores.tipoEmpleados}
-                                value={datos.tipoEmpleados ? datos.tipoEmpleados : 'Seleccione'}
+                                value={datos.tipoEmpleados ? datos.tipoEmpleados : 0}
                                 onChange={handleChange}
                                 >
-                                <MenuItem value={10}>Ten</MenuItem>
-                                <MenuItem value={20}>Twenty</MenuItem>
-                                <MenuItem value={30}>Thirty</MenuItem>
+                                <MenuItem disabled value={0}>
+                                    <em>Seleccione</em>
+                                </MenuItem>
+                                {tipoEmpleado?.map((dato, index) => (
+                                    <MenuItem key={index} value={dato.id}>{dato.tipoEmpleado}</MenuItem>
+                                ))}
                                 </Select>
                             </FormControl>
                             </Grid>
@@ -282,12 +407,15 @@ class AltaEmpleado extends Component {
                                 name="jornadaLaboral"
                                 required
                                 error={errores.jornadaLaboral}
-                                value={datos.jornadaLaboral ? datos.jornadaLaboral : 'Seleccione'}
+                                value={datos.jornadaLaboral ? datos.jornadaLaboral : 0}
                                 onChange={handleChange}
                                 >
-                                <MenuItem value={10}>Ten</MenuItem>
-                                <MenuItem value={20}>Twenty</MenuItem>
-                                <MenuItem value={30}>Thirty</MenuItem>
+                                <MenuItem disabled value={0}>
+                                    <em>Seleccione</em>
+                                </MenuItem>
+                                {jornada?.map((dato, index) => (
+                                    <MenuItem key={index} value={dato.id}>{dato.horasLaborales}</MenuItem>
+                                ))}
                                 </Select>
                             </FormControl>
                             </Grid>
@@ -313,12 +441,15 @@ class AltaEmpleado extends Component {
                                 name="rol"
                                 required
                                 error={errores.rol}
-                                value={datos.rol ? datos.rol : 'Seleccione'}
+                                value={datos.rol ? datos.rol : 0}
                                 onChange={handleChange}
                                 >
-                                <MenuItem value={10}>Ten</MenuItem>
-                                <MenuItem value={20}>Twenty</MenuItem>
-                                <MenuItem value={30}>Thirty</MenuItem>
+                                <MenuItem disabled value={0}>
+                                    <em>Seleccione</em>
+                                </MenuItem>
+                                {rol?.map((dato, index) => (
+                                    <MenuItem key={index} value={dato.id}>{dato.nombreRol}</MenuItem>
+                                ))}
                                 </Select>
                             </FormControl>
                             </Grid>
@@ -349,7 +480,9 @@ const mapStateToProps = ({ Usuario, Empleado, }) => ({
 const mapDispatchToProps = (dispatch) => ({
   actions: {
     empleado: bindActionCreators(EmpleadoActions, dispatch),
+    usuario: bindActionCreators(UsuarioActions, dispatch),
   },
+  
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(withStyles(empleadoStyles,{ withTheme: true })(AltaEmpleado));

@@ -20,6 +20,8 @@ import BuscarEmpleado from './buscarEmpleado';
 import AltaMovimiento from './altaMovimiento';
 import BuscarMovimiento from './buscarMovimiento';
 import ReporteMovimiento from './reporteMovimiento';
+import {consultarStorage,almacenarStorage } from '../utilidades/asyncStorage';
+import {OPCIONMENU} from '../constantes/constantes';
 
 const drawerWidth = 240;
 
@@ -145,6 +147,13 @@ const Menu = () => {
     const [openOptionM, setOpenOptionM] = React.useState(false);
     const [btnOpciones, setBtnOpciones] = React.useState(0);
 
+    React.useEffect(() => {
+        
+          obtenerOpcionMenu();
+        
+        console.log("opcion",btnOpciones);
+    })
+
     const handleDrawer = () => {
       setOpen(!open);
     };
@@ -156,6 +165,15 @@ const Menu = () => {
     const handleClickMovimiento = () => {
         setOpenOptionM(!openOptionM);
     };
+
+    const obtenerOpcionMenu = () => {
+        consultarStorage(OPCIONMENU)
+          .then((valor) => {
+            if (valor !== null || valor !== 0) {
+              setBtnOpciones(Number.parseInt(valor));
+            } 
+          });
+    }
 
   return (
     <div className={classes.root}>
@@ -192,10 +210,10 @@ const Menu = () => {
         </ListItem>
         <Collapse in={openOption} timeout="auto" unmountOnExit>
         <List component="div" disablePadding>
-            <ListItem button className={classes.contenedorSubMenu} onClick={() => setBtnOpciones(1)}>
+            <ListItem button className={classes.contenedorSubMenu} onClick={() => {setBtnOpciones(1); almacenarStorage(OPCIONMENU,1);}}>
                 <ListItemText primary="Nuevo" className={classes.txtMenu}/>
             </ListItem>
-            <ListItem button className={classes.contenedorSubMenu} onClick={() => setBtnOpciones(2)}>
+            <ListItem button className={classes.contenedorSubMenu} onClick={() => {setBtnOpciones(2);almacenarStorage(OPCIONMENU,2);}}>
             <ListItemText primary="Buscar" className={classes.txtMenu}/>
             </ListItem>
         </List>
@@ -207,13 +225,13 @@ const Menu = () => {
         </ListItem>
         <Collapse in={openOptionM} timeout="auto" unmountOnExit>
         <List component="div" disablePadding>
-          <ListItem button className={classes.contenedorSubMenu} onClick={() => setBtnOpciones(3)}>
+          <ListItem button className={classes.contenedorSubMenu} onClick={() => {setBtnOpciones(3);almacenarStorage(OPCIONMENU,3);}}>
             <ListItemText primary="Nuevo" className={classes.txtMenu}/>
           </ListItem>
-          <ListItem button className={classes.contenedorSubMenu} onClick={() => setBtnOpciones(4)}>
+          <ListItem button className={classes.contenedorSubMenu} onClick={() => {setBtnOpciones(4); almacenarStorage(OPCIONMENU,4);}}>
             <ListItemText primary="Buscar" className={classes.txtMenu}/>
           </ListItem>
-          <ListItem button className={classes.contenedorSubMenu} onClick={() => setBtnOpciones(5)}>
+          <ListItem button className={classes.contenedorSubMenu} onClick={() => {setBtnOpciones(5); almacenarStorage(OPCIONMENU,5);}}>
             <ListItemText primary="Reporte" className={classes.txtMenu}/>
           </ListItem>
         </List>

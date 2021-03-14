@@ -18,7 +18,6 @@ import { FaUserAlt,RiLockPasswordFill} from 'react-icons/all';
 import {Visibility,VisibilityOff} from '@material-ui/icons';
 import swal from 'sweetalert';
 import clsx from 'clsx';
-import PropTypes from "prop-types";
 import * as UsuarioActions from '../store/Acciones/usuarioActions';
 import logo from '../assets/imagenes/logo.png'
 
@@ -99,9 +98,6 @@ const loginStyles = theme =>  ({
 });
 
 class Login extends Component {
-    static contextTypes = {
-        router: PropTypes.object
-    }
     constructor(props) {
         super(props);
     
@@ -111,9 +107,32 @@ class Login extends Component {
             mostrarContrasena:false
         };
         this.validarLogIn = this.validarLogIn.bind(this);
+        this.verificarSesionLocal = this.verificarSesionLocal.bind(this);
+    }
+
+    componentDidMount() {
+        this.verificarSesionLocal();
+    }
+
+    verificarSesionLocal() {
+        const { actions: { usuario } } = this.props;
+        const { history } = this.props;
+        usuario.verificarSesionLocal().then((resp) => {
+          if (resp) {
+             history.replace("/principal");
+          } 
+        }).catch((error) => {
+          swal({
+            title: "",
+            text: error.message,
+            icon: "warning",
+            button: "Aceptar",
+        });
+        });
     }
 
     validarLogIn(){
+        const { history } = this.props;
         const { actions: { usuario } } = this.props;
         const {nombreUsuario,contrasena} = this.state;
         if(!nombreUsuario || !contrasena){
@@ -129,40 +148,9 @@ class Login extends Component {
                 contrasena,
             };
             usuario.loginUsuario(datosLogin)
-            .then((respuesta) => {
-                console.log(respuesta);
-                if(respuesta){
-                    this.context.router.history.replace("/principal");
-                   
-                }else{
-                    swal({
-                        title: "",
-                        text: "El usuario ingresado no existe.",
-                        icon: "warning",
-                        button: "Aceptar",
-                    });
-                }
-                
-            })
-            .catch((error) => {
-                if(error.response){
-                    if (error.response.status === 404) {
-                        swal({
-                            title: "",
-                            text: "El usuario y/o contraseña introducidos son incorrectos, favor de verificar.",
-                            icon: "warning",
-                            button: "Aceptar",
-                        });
-                    } else {
-                        swal({
-                            title: "",
-                            text: "Ocurrió un error al iniciar sesión. Intente más tarde.",
-                            icon: "error",
-                            button: "Aceptar",
-                        });
-                    }
-                  }
-            })
+            .then(() => {
+                history.replace("/principal"); 
+            });
         }
     
     }

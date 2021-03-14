@@ -14,10 +14,11 @@ import {
   USUARIO_SESION,
 } from '../../constantes/constantes';
 import { almacenarObjetoStorage, consultarObjetoStorage } from '../../utilidades/asyncStorage';
+import swal from 'sweetalert';
 
 
 export const loginUsuario = (usuario) => (dispatch) => {
-  console.log(usuario);
+  console.log(`${BASE_SESION}${URL_INICIAR_SESION}`);
   dispatch({ type: START_AJAX });
   return new Promise(
     (resolve, reject) => {
@@ -32,13 +33,37 @@ export const loginUsuario = (usuario) => (dispatch) => {
               almacenarObjetoStorage(USUARIO_SESION, data);
               axiosConfig.defaults.headers.common.APITOKEN = data.token;
               dispatch({ type: INICIAR_SESION, payload: data });
-              resolve(true);
+              resolve();
           } else {
-            reject(false);
+            swal({
+              title: "",
+              text: "El usuario ingresado no existe.",
+              icon: "warning",
+              button: "Aceptar",
+            });
+            reject();
           }
         })
         .catch((error) => {
-          reject(error);
+          console.log("error",error);
+          if(error.response){
+            if (error.response.status === 404) {
+                swal({
+                    title: "",
+                    text: "El usuario y/o contraseña introducidos son incorrectos, favor de verificar.",
+                    icon: "warning",
+                    button: "Aceptar",
+                });
+            } else {
+                swal({
+                    title: "",
+                    text: "Ocurrió un error al iniciar sesión. Intente más tarde.",
+                    icon: "error",
+                    button: "Aceptar",
+                });
+            }
+          }
+          reject();
         })
         .finally(() => dispatch({ type: END_AJAX }));
     },
@@ -67,13 +92,19 @@ export const logoutUsuario = (usuario, CambiarRuta) => (dispatch) => {
 
 export const verificarSesionLocal = () => (dispatch) => new Promise((resolve, reject) => {
   consultarObjetoStorage(USUARIO_SESION).then((usuarioSesion) => {
+    console.log("LOCAL",usuarioSesion);
     if (usuarioSesion && Object.getOwnPropertyNames(usuarioSesion).length !== 0) {
       axiosConfig.defaults.headers.common.APITOKEN = usuarioSesion.token;
       dispatch({ type: VALIDAR_SESION_LOCAL, payload: usuarioSesion });
       resolve(true);
     } else resolve(false);
   }).catch((error) => {
-   // AlertaAceptar('', 'Se ha producido un error al verificar la sesión actual.');
+    swal({
+      title: "",
+      text: "Se ha producido un error al verificar la sesión actual.",
+      icon: "error",
+      button: "Aceptar",
+    });
     reject(error);
   });
 });

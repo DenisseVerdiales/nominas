@@ -2,6 +2,7 @@ import { AsyncStorage } from 'AsyncStorage';
 //import { AlertaAceptar } from '../components/Alerta';
 
 export const almacenarObjetoStorage = async (llave, obj) => {
+  console.log("STORAGE",llave,obj);
   try {
     const jsonObj = JSON.stringify(obj);
     await AsyncStorage.setItem(llave, jsonObj);

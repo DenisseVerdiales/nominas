@@ -2,7 +2,7 @@ import React from 'react';
 import { Provider } from 'react-redux';
 import { Switch, Route, BrowserRouter as HashRouter } from 'react-router-dom';
 import store from './store/store';
-import Login from './paginas/Login';
+import Login from './paginas/LogIn';
 import Principal from './paginas/principal';
 
 function App() {
