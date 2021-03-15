@@ -11,14 +11,13 @@ import {
 import { withStyles } from '@material-ui/core/styles';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import PropTypes from "prop-types";
 import moment from "moment";
 import swal from 'sweetalert';
 import * as EmpleadoActions from '../store/Acciones/empleadoActions';
 import * as UsuarioActions from '../store/Acciones/usuarioActions';
 import {soloLetras, NumerosLetras} from '../utilidades/validar';
-import { almacenarObjetoStorage, consultarObjetoStorage } from '../utilidades/asyncStorage';
-import { CBOTIPOEMPLEADO,CBOJORNADA,CBOROL} from '../constantes/constantes';
+import { almacenarStorage, consultarObjetoStorage,consultarStorage } from '../utilidades/asyncStorage';
+import { CBOTIPOEMPLEADO,CBOJORNADA,CBOROL,COMBOSCONSULTADOS} from '../constantes/constantes';
 
 const empleadoStyles = theme =>  ({
     contenedor:{
@@ -62,10 +61,8 @@ const empleadoStyles = theme =>  ({
         border:'1px solid #DFE2E4'
     }
 });
+
 class AltaEmpleado extends Component {
-    static contextTypes = {
-        router: PropTypes.object
-    }
     constructor(props) {
         super(props);
     
@@ -80,138 +77,126 @@ class AltaEmpleado extends Component {
     }
 
    componentDidMount() {
-        this.validarCombos();
-        this.verificarSesionLocal();
+        this.consultarStorageCombos();
     }
 
-    obtenerTipoEmpleado(){
+    consultarStorageCombos(){
+        consultarStorage(COMBOSCONSULTADOS)
+          .then((valor) => {
+            if (valor === true && Object.getOwnPropertyNames(valor).length !== 0) {
+                this.obtenerStorageCboTipo();
+            }else{
+                this.verificarSesionLocal();
+            } 
+        });
+    }
+
+    obtenerCombos(){
         const { actions: { empleado } } = this.props;
-        console.log("TIPOEMPLEADO");
         empleado.obtenerTipoEmpleado()
-        .then((tipoEmp)=>{
-            console.log("tipoEmp",tipoEmp);
-            almacenarObjetoStorage(CBOTIPOEMPLEADO, tipoEmp);
-            this.setState({tipoEmpleado: tipoEmp});
+        .then(()=>{
             empleado.obtenerJornadaLaboral()
-            .then((cboJornada)=>{
-                console.log("JORNADA",cboJornada);
-                almacenarObjetoStorage(CBOJORNADA, cboJornada);
-                this.setState({jornada: cboJornada})
+            .then(()=>{
                 empleado.obtenerRol()
-                .then((cboRol)=>{
-                    console.log("ROL");
-                    almacenarObjetoStorage(CBOROL, cboRol);
-                    this.setState({rol: cboRol})
-                }).catch((error)=>{
-                    console.log("ERROR ROL",error);
+                .then(()=>{
+                    almacenarStorage(COMBOSCONSULTADOS,true)
+                    .then(()=>{
+                        this.consultarCombos();
+                    })
+                    
+                })
+                .catch((error)=>{
+                    swal({
+                        title: "",
+                        text: error,
+                        icon: "error",
+                        button: "Aceptar",
+                    });
                 })
             }).catch((error)=>{
-                console.log("ERROR JORNADA",error);
-            })
-             
-        }).catch((error)=>{
-            console.log("ERROR TIPO EMPLEADO",error);
-        })
-        
-    }
-
-    validarCombos() {
-        console.log("EN EL STORAGE");
-        const { actions: { empleado } } = this.props;
-        consultarObjetoStorage(CBOTIPOEMPLEADO)
-          .then((tipo) => {
-              console.log("tipo",tipo);
-            if (tipo && Object.getOwnPropertyNames(tipo).length !== 0) {
-                this.setState({tipoEmpleado:tipo});
-               
-            }else{
-                empleado.obtenerTipoEmpleado()
-                .then((tipoEmp)=>{
-                    console.log("tipoEmp",tipoEmp);
-                    almacenarObjetoStorage(CBOTIPOEMPLEADO, tipoEmp);
-                    this.setState({tipoEmpleado: tipoEmp});
-                     
-                }).catch((error)=>{
-                    console.log("ERROR TIPO EMPLEADO",error);
-                })
-            }
-            consultarObjetoStorage(CBOJORNADA)
-            .then((jornadaL) => {
-                console.log("jornada",jornadaL)
-                if (jornadaL && Object.getOwnPropertyNames(jornadaL).length !== 0) {
-                    this.setState({jornada:jornadaL});
-                }else{
-                    empleado.obtenerJornadaLaboral()
-                    .then((cboJornada)=>{
-                        console.log("JORNADA",cboJornada);
-                        almacenarObjetoStorage(CBOJORNADA, cboJornada);
-                        this.setState({jornada: cboJornada})
-                    }).catch((error)=>{
-                        console.log("ERROR JORNADA",error);
-                    })
-                }
-                    consultarObjetoStorage(CBOROL)
-                    .then((cboRol) => {
-                        if (cboRol && Object.getOwnPropertyNames(cboRol).length !== 0) {
-                            this.setState({rol:cboRol});
-                        }else{
-                            empleado.obtenerRol()
-                            .then((cboRol)=>{
-                                console.log("ROL");
-                                almacenarObjetoStorage(CBOROL, cboRol);
-                                this.setState({rol: cboRol})
-                            }).catch((error)=>{
-                                console.log("ERROR ROL",error);
-                            })
-                        }
-                    })
-                    .catch((error) => {
-                        swal({
-                            title: "",
-                            text: error,
-                            icon: "warning",
-                            button: "Aceptar",
-                        });
-                    });
-                
-            })
-            .catch((error) => {
                 swal({
                     title: "",
                     text: error,
-                    icon: "warning",
+                    icon: "error",
                     button: "Aceptar",
                 });
+            })
+        }).catch((error)=>{
+            swal({
+                title: "",
+                text: error,
+                icon: "error",
+                button: "Aceptar",
             });
-            
-          })
-          .catch((error) => {
+        })
+    }
+
+    consultarCombos(){
+        const { Empleado} = this.props;
+         this.setState({
+            tipoEmpleado: Empleado.tipoEmpleado,
+            jornada: Empleado.jornadaLaboral,
+            rol: Empleado.rol
+        });
+    }
+
+    obtenerStorageCboTipo() {
+        consultarObjetoStorage(CBOTIPOEMPLEADO)
+        .then((tipo) => {
+            this.setState({tipoEmpleado:tipo},this.obtenerStorageCboJornada);
+        })
+        .catch((error) => {
+            swal({
+                title: "",
+                text: error,
+                icon: "error",
+                button: "Aceptar",
+            });
+        });
+      }
+
+      obtenerStorageCboJornada(){
+        consultarObjetoStorage(CBOJORNADA)
+        .then((jornadaL) => {
+            this.setState({jornada:jornadaL},this.obtenerStorageCboRol);
+        })
+        .catch((error) => {
+            swal({
+                title: "",
+                text: error,
+                icon: "error",
+                button: "Aceptar",
+            });
+        });
+      }
+
+    obtenerStorageCboRol(){
+        consultarObjetoStorage(CBOROL)
+        .then((cboRol) => {
+            this.setState({rol:cboRol},this.verificarSesionLocal);
+        })
+        .catch((error) => {
             swal({
                 title: "",
                 text: error,
                 icon: "warning",
                 button: "Aceptar",
             });
-            
         });
-      }
-
-     
-      
+    }
        
     verificarSesionLocal() {
-        
-    const { actions: { usuario } } = this.props;
-    usuario.verificarSesionLocal().then(()=>{
-        console.log("SESION LOCAL STORAGE");
-    })
+        const { actions: { usuario } } = this.props;
+        usuario.verificarSesionLocal()
+        .then(()=>{
+            this.obtenerCombos();
+        })
     }
 
     valida = (e) => {
         e.preventDefault();
         const { actions: { empleado },Usuario } = this.props;
         const {datos}=this.state;
-        console.log("Usuario",Usuario);
         let vacio = {};
         if(!datos.nombre){
         vacio={'nombre':true};
@@ -242,12 +227,12 @@ class AltaEmpleado extends Component {
             apellidoMaterno: datos.apellidoMaterno,
             fechaNacimiento: datos.fechaNac,
             domicilio: datos.domicilio ? datos.domicilio : '',
-            tipoEmpleadoId: Number.parseInt(datos.tipoEmpleados),
-            rolId: Number.parseInt(datos.rol),
-            jornadaLaboralId: Number.parseInt(datos.jornadaLaboral),
-            usuarioCreacionId: Number.parseInt(Usuario.usuarioLogin.id)
+            tipoEmpleadoId: datos.tipoEmpleados,
+            rolId: datos.rol,
+            jornadaLaboralId: datos.jornadaLaboral,
+            usuarioCreacionId: Usuario.usuarioLogin.id
          }
-         console.log("datosEmpleado",datosEmpleado);
+
          empleado.guardarEmpleado(datosEmpleado)
          .then((resultado)=>{
              if(resultado){
@@ -257,6 +242,10 @@ class AltaEmpleado extends Component {
                         text: "Empleado guardado con éxito.",
                         icon: "success",
                         button: "Aceptar",
+                    });
+                    this.setState({
+                        datos:{},
+                        fechaSeleccionada: moment().format("YYYY-MM-DD")
                     });
                 }
              }
@@ -286,8 +275,7 @@ class AltaEmpleado extends Component {
     
     render(){
         const {errores,datos,fechaSeleccionada,tipoEmpleado,jornada,rol} = this.state;
-        const { classes,Empleado,Usuario} = this.props;
-        console.log("Usuario",Usuario);
+        const { classes} = this.props;
 
         const handleChange = (e) => {
             const {datos}=this.state;
@@ -298,13 +286,10 @@ class AltaEmpleado extends Component {
         const onDateChange = (value) => {
             const {datos}=this.state;
             let fecha = {...datos,'fechaNac': value.target.value };
-            console.log("fecha",fecha);
             this.setState({
                 datos: fecha,
                 fechaSeleccionada:value
             });
-           // setDatos({...datos, 'fechaNac': value})
-           // setFechaSeleccionada(value);
         };
 
     return(
@@ -325,7 +310,7 @@ class AltaEmpleado extends Component {
                                     required
                                     className={classes.selectTipoEmp}
                                     onChange={handleChange}
-                                    value={datos.nombre}
+                                    value={datos.nombre ? datos.nombre : ''}
                                     label="Nombre"
                                     error={errores.nombre}
                                     onInput={soloLetras}
@@ -338,7 +323,7 @@ class AltaEmpleado extends Component {
                                     name="apellidoPaterno"
                                     inputProps={{ maxLength: 40 }}
                                     onChange={handleChange}
-                                    value={datos.apellidoPaterno}
+                                    value={datos.apellidoPaterno ? datos.apellidoPaterno : ''}
                                     required
                                     className={classes.selectTipoEmp}
                                     label="Apellido Paterno"
@@ -351,7 +336,7 @@ class AltaEmpleado extends Component {
                                     name="apellidoMaterno"
                                     inputProps={{ maxLength: 40 }}
                                     onChange={handleChange}
-                                    value={datos.apellidoMaterno}
+                                    value={datos.apellidoMaterno ? datos.apellidoMaterno : ''}
                                     required
                                     className={classes.selectTipoEmp}
                                     label="Apellido Materno"
@@ -427,7 +412,7 @@ class AltaEmpleado extends Component {
                                     name="domicilio"
                                     inputProps={{ maxLength: 40 }}
                                     onChange={handleChange}
-                                    value={datos.domicilio}
+                                    value={datos.domicilio ? datos.domicilio : ''}
                                     className={classes.selectTipoEmp}
                                     label="Domicilio"
                                     onInput={NumerosLetras} />

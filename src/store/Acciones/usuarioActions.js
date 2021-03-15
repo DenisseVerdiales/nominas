@@ -12,8 +12,10 @@ import {
   URL_INICIAR_SESION,
   URL_CERRAR_SESION,
   USUARIO_SESION,
+  COMBOSCONSULTADOS,
+  EMPLEADOSCONSULTADOS
 } from '../../constantes/constantes';
-import { almacenarObjetoStorage, consultarObjetoStorage } from '../../utilidades/asyncStorage';
+import { almacenarObjetoStorage, consultarObjetoStorage,almacenarStorage } from '../../utilidades/asyncStorage';
 import swal from 'sweetalert';
 
 
@@ -31,6 +33,8 @@ export const loginUsuario = (usuario) => (dispatch) => {
           console.log("Respuesta",data);
           if (data) {
               almacenarObjetoStorage(USUARIO_SESION, data);
+              almacenarStorage(COMBOSCONSULTADOS,false);
+              almacenarStorage(EMPLEADOSCONSULTADOS,false);
               axiosConfig.defaults.headers.common.APITOKEN = data.token;
               dispatch({ type: INICIAR_SESION, payload: data });
               resolve();

@@ -20,6 +20,7 @@ import BuscarEmpleado from './buscarEmpleado';
 import AltaMovimiento from './altaMovimiento';
 import BuscarMovimiento from './buscarMovimiento';
 import ReporteMovimiento from './reporteMovimiento';
+import EditarEmpleado from './editarEmpleado';
 import {consultarStorage,almacenarStorage } from '../utilidades/asyncStorage';
 import {OPCIONMENU} from '../constantes/constantes';
 
@@ -148,10 +149,7 @@ const Menu = () => {
     const [btnOpciones, setBtnOpciones] = React.useState(0);
 
     React.useEffect(() => {
-        
           obtenerOpcionMenu();
-        
-        console.log("opcion",btnOpciones);
     })
 
     const handleDrawer = () => {
@@ -254,6 +252,9 @@ const Menu = () => {
       )}
       {btnOpciones === 5 &&(
           <ReporteMovimiento/>
+      )}
+      {btnOpciones === 6 && (
+        <EditarEmpleado/>
       )}
     </main>
   </div>

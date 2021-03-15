@@ -1,13 +1,17 @@
 import { AsyncStorage } from 'AsyncStorage';
-//import { AlertaAceptar } from '../components/Alerta';
+import swal from 'sweetalert';
 
 export const almacenarObjetoStorage = async (llave, obj) => {
-  console.log("STORAGE",llave,obj);
   try {
     const jsonObj = JSON.stringify(obj);
     await AsyncStorage.setItem(llave, jsonObj);
   } catch (error) {
-    //AlertaAceptar('', error.message);
+    swal({
+      title: "",
+      text: error.message,
+      icon: "error",
+      button: "Aceptar",
+    });
   }
 };
 
@@ -42,6 +46,11 @@ export const limpiarStorage = async (llave) => {
   try {
     await AsyncStorage.removeItem(llave);
   } catch (error) {
-   // AlertaAceptar('Error: ', error.message);
+    swal({
+      title: "",
+      text: error.message,
+      icon: "error",
+      button: "Aceptar",
+    });
   }
 };

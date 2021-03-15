@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {Component} from 'react';
 import { 
     Typography,
     Grid, 
@@ -8,12 +8,18 @@ import {
     InputLabel,
     MenuItem,
     Button} from '@material-ui/core';
-import { makeStyles } from '@material-ui/core/styles';
+import { withStyles } from '@material-ui/core/styles';
 import moment from "moment";
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
+import swal from 'sweetalert';
+import * as EmpleadoActions from '../store/Acciones/empleadoActions';
+import * as UsuarioActions from '../store/Acciones/usuarioActions';
 import {soloLetras, NumerosLetras} from '../utilidades/validar';
+import { almacenarStorage, consultarObjetoStorage,consultarStorage } from '../utilidades/asyncStorage';
+import { CBOTIPOEMPLEADO,CBOJORNADA,CBOROL,COMBOSCONSULTADOS,IDEMPLEADO} from '../constantes/constantes';
 
-
-const empleadoStyles = makeStyles((theme) => ({
+const empleadoStyles = theme =>  ({
     contenedor:{
         justifyContent:'center',
         alignItems:'center',
@@ -54,206 +60,435 @@ const empleadoStyles = makeStyles((theme) => ({
         padding:'20px 90px',
         border:'1px solid #DFE2E4'
     }
-}))
+})
 
-export default function EditarEmpleado(){
-    const classes = empleadoStyles();
-    const [datos,setDatos] = React.useState({});
-    const [fechaSeleccionada, setFechaSeleccionada] = React.useState(moment().format("YYYY-MM-DD"));
-    const [errores, setErrores] = React.useState({});
-    let vacio = {};
-    const valida = (e) => {
+class EditarEmpleado extends Component {
+    constructor(props) {
+        super(props);
+    
+        this.state = {
+            errores:{},
+            tipoEmpleado:[],
+            jornada:[],
+            rol:[],
+            empleadoSeleccionado:{}
+        };
+    }
+
+    componentDidMount() {
+        this.consultarStorageCombos();
+        this.consultarEmpleadoIdStorage();
+    }
+
+    consultarEmpleadoIdStorage(){
+        consultarStorage(IDEMPLEADO)
+        .then((valor) => {
+          if (valor && Object.getOwnPropertyNames(valor).length !== 0) {
+             this.consultarEmpleado(valor);
+          }
+      });
+    }
+
+    consultarEmpleado(idREmpleado){
+        const { actions: { empleado } } = this.props;
+        const datos={id: idREmpleado}
+        empleado.obtenerEmpleadoPorId(Number.parseInt(idREmpleado))
+        .then((resp)=>{
+            this.setState({empleadoSeleccionado:resp})
+        })
+    }
+
+    consultarStorageCombos(){
+        consultarStorage(COMBOSCONSULTADOS)
+          .then((valor) => {
+            if (valor == true && Object.getOwnPropertyNames(valor).length !== 0) {
+                this.obtenerStorageCboTipo();
+            }else{
+                this.verificarSesionLocal();
+            } 
+        });
+    }
+
+    obtenerCombos(){
+        const { actions: { empleado } } = this.props;
+        empleado.obtenerTipoEmpleado()
+        .then(()=>{
+            empleado.obtenerJornadaLaboral()
+            .then(()=>{
+                empleado.obtenerRol()
+                .then(()=>{
+                    almacenarStorage(COMBOSCONSULTADOS,true)
+                    .then(()=>{
+                        this.consultarCombos();
+                    })
+                    
+                })
+                .catch((error)=>{
+                    swal({
+                        title: "",
+                        text: error,
+                        icon: "error",
+                        button: "Aceptar",
+                    });
+                })
+            }).catch((error)=>{
+                swal({
+                    title: "",
+                    text: error,
+                    icon: "error",
+                    button: "Aceptar",
+                });
+            })
+        }).catch((error)=>{
+            swal({
+                title: "",
+                text: error,
+                icon: "error",
+                button: "Aceptar",
+            });
+        })
+    }
+
+    consultarCombos(){
+        const { Empleado} = this.props;
+         this.setState({
+            tipoEmpleado: Empleado.tipoEmpleado,
+            jornada: Empleado.jornadaLaboral,
+            rol: Empleado.rol
+        });
+    }
+
+    obtenerStorageCboTipo() {
+        const { actions: { empleado } } = this.props;
+        consultarObjetoStorage(CBOTIPOEMPLEADO)
+        .then((tipo) => {
+            this.setState({tipoEmpleado:tipo},this.obtenerStorageCboJornada);
+        })
+        .catch((error) => {
+            swal({
+                title: "",
+                text: error,
+                icon: "error",
+                button: "Aceptar",
+            });
+        });
+    }
+
+
+    obtenerStorageCboJornada(){
+        const { actions: { empleado } } = this.props;
+        consultarObjetoStorage(CBOJORNADA)
+        .then((jornadaL) => {
+            this.setState({jornada:jornadaL},this.obtenerStorageCboRol);
+        })
+        .catch((error) => {
+            swal({
+                title: "",
+                text: error,
+                icon: "error",
+                button: "Aceptar",
+            });
+        });
+      }
+
+    obtenerStorageCboRol(){
+        consultarObjetoStorage(CBOROL)
+        .then((cboRol) => {
+            this.setState({rol:cboRol},this.verificarSesionLocal);
+        })
+        .catch((error) => {
+            swal({
+                title: "",
+                text: error,
+                icon: "warning",
+                button: "Aceptar",
+            });
+        });
+    }
+
+    verificarSesionLocal() {
+        const { actions: { usuario } } = this.props;
+        usuario.verificarSesionLocal()
+        .then(()=>{
+            this.obtenerCombos();
+        })
+    }
+
+    valida = (e) => {
         e.preventDefault();
-
-        if(!datos.nombre){
+        const { actions: { empleado },Usuario } = this.props;
+        const {empleadoSeleccionado}=this.state;
+        let vacio = {};
+        if(!empleadoSeleccionado.nombre){
         vacio={'nombre':true};
         }
-        if(!datos.apellidoPaterno){
+        if(!empleadoSeleccionado.apellidoPaterno){
         vacio={...vacio,'apellidoPaterno':true};
         }
-        if(!datos.apellidoMaterno){
+        if(!empleadoSeleccionado.apellidoMaterno){
         vacio = {...vacio,'apellidoMaterno':true};
         }
-        if(!datos.fechaNac){
-        vacio = {...vacio,'fechaNac':true};
+        if(!empleadoSeleccionado.fechaNacimiento){
+        vacio = {...vacio,'fechaNacimiento':true};
         }
-        if(!datos.tipoEmpleados){
-            vacio = {...vacio,'tipoEmpleados':true};
+        if(!empleadoSeleccionado.tipoEmpleadoId){
+            vacio = {...vacio,'tipoEmpleadoId':true};
         }
-        if(!datos.jornadaLaboral){
-            vacio = {...vacio,'jornadaLaboral':true};
+        if(!empleadoSeleccionado.jornadaLaboralId){
+            vacio = {...vacio,'jornadaLaboralId':true};
         }
-        if(!datos.rol){
-            vacio = {...vacio,'rol':true};
+        if(!empleadoSeleccionado.rolId){
+            vacio = {...vacio,'rolId':true};
         }
-        setErrores(vacio);
-        if(datos.nombre && datos.apellidoPaterno && datos.apellidoMaterno && datos.fechaNac && datos.tipoEmpleados && datos.jornadaLaboral && datos.rol){
-            alert("correcto")
+        this.setState({errores: vacio});
+        if(empleadoSeleccionado.nombre && empleadoSeleccionado.apellidoPaterno && empleadoSeleccionado.apellidoMaterno && empleadoSeleccionado.fechaNacimiento && empleadoSeleccionado.tipoEmpleadoId && empleadoSeleccionado.jornadaLaboralId && empleadoSeleccionado.rolId){
+         const datosEmpleado = {
+            id: empleadoSeleccionado.id,
+            nombre: empleadoSeleccionado.nombre,
+            apellidoPaterno: empleadoSeleccionado.apellidoPaterno,
+            apellidoMaterno: empleadoSeleccionado.apellidoMaterno,
+            fechaNacimiento: empleadoSeleccionado.fechaNacimiento,
+            domicilio: empleadoSeleccionado.domicilio ? empleadoSeleccionado.domicilio : '',
+            tipoEmpleadoId: empleadoSeleccionado.tipoEmpleadoId,
+            rolId: empleadoSeleccionado.rolId,
+            jornadaLaboralId: empleadoSeleccionado.jornadaLaboralId,
+            usuarioModificacionId: Usuario.usuarioLogin.id
+         }
+
+         empleado.actualizarEmpleado(datosEmpleado)
+         .then((resultado)=>{
+             if(resultado){
+                if(resultado.status === 200){
+                    swal({
+                        title: "",
+                        text: "Empleado guardado con éxito.",
+                        icon: "success",
+                        button: "Aceptar",
+                    });
+                    this.setState({
+                        empleadoSeleccionado:{},
+                        fechaSeleccionada: moment().format("YYYY-MM-DD")
+                    });
+                }
+             }
+         })
+         .catch((error)=>{
+            if(error.response){
+                if (error.response.status === 400) {
+                    swal({
+                        title: "",
+                        text: "El empleado ingresado ya existe.",
+                        icon: "warning",
+                        button: "Aceptar",
+                    });
+                } else {
+                    swal({
+                        title: "",
+                        text: "Ocurrió un error al guardar el empleado. Intente más tarde.",
+                        icon: "error",
+                        button: "Aceptar",
+                    });
+                }
+            }
+         })
         }
     }
 
-    const handleChange = (e) => {
-        setDatos({...datos,[e.target.name]: e.target.value })
-        console.log(datos);
-    }
-    const onDateChange = (value) => {
-  
-        setDatos({...datos, 'fechaNac': value})
-        setFechaSeleccionada(value);
-      };
+    render(){
+        const {errores,tipoEmpleado,jornada,rol, empleadoSeleccionado} = this.state;
+        const { classes} = this.props;
 
-    return(
-        <Grid container className={classes.contenedor}>
-            <Grid item lg={10} md={10} sm={10} xs={10} >
-                <Typography className={classes.txtTitulo}>Edición de empleados</Typography>
-                <Grid item lg={12} md={12} sm={12} xs={12} >
-                    <Grid container className={classes.contenedor}>
-                    <form noValidate={true} onSubmit={valida}>
-                        <Grid item lg={12} md={12} sm={12} xs={12} className={classes.contenedorFormGeneral}>
-                     
-                            <Grid item lg={12} md={12} sm={12} xs={12} className={classes.contenedorFormulario}>
-                                <Grid item lg={4} md={4} sm={6} xs={12}>
-                                    <TextField
-                                        id="nombre"
-                                        name="nombre"
-                                        inputProps={{ maxLength: 40 }}
-                                        required
-                                        className={classes.selectTipoEmp}
-                                        onChange={handleChange}
-                                        value={datos.nombre}
-                                        label="Nombre"
-                                        error={errores.nombre}
-                                        onInput={soloLetras}
-                                    />
+        const handleChange = (e) => {
+            const {empleadoSeleccionado}=this.state;
+            let datosInput = {...empleadoSeleccionado,[e.target.name]: e.target.value };
+            console.log(datosInput);
+            this.setState({empleadoSeleccionado:datosInput});
+        }
 
+        const onDateChange = (value) => {
+            const {empleadoSeleccionado}=this.state;
+            let fecha = {...empleadoSeleccionado,'fechaNacimiento': value.target.value };
+            this.setState({
+                datos: fecha
+            });
+        };
+
+        return(
+            <Grid container className={classes.contenedor}>
+                <Grid item lg={10} md={10} sm={10} xs={10} >
+                    <Typography className={classes.txtTitulo}>Edición de empleados</Typography>
+                    <Grid item lg={12} md={12} sm={12} xs={12} >
+                        <Grid container className={classes.contenedor}>
+                        <form noValidate={true} onSubmit={this.valida}>
+                            <Grid item lg={12} md={12} sm={12} xs={12} className={classes.contenedorFormGeneral}>
+                        
+                                <Grid item lg={12} md={12} sm={12} xs={12} className={classes.contenedorFormulario}>
+                                    <Grid item lg={4} md={4} sm={6} xs={12}>
+                                        <TextField
+                                            id="nombre"
+                                            name="nombre"
+                                            inputProps={{ maxLength: 40 }}
+                                            required
+                                            className={classes.selectTipoEmp}
+                                            onChange={handleChange}
+                                            value={empleadoSeleccionado.nombre ? empleadoSeleccionado.nombre : ''}
+                                            label="Nombre"
+                                            error={errores.nombre}
+                                            onInput={soloLetras}
+                                        />
+
+                                    </Grid>
+                                    <Grid item lg={4} md={4} sm={6} xs={12} >
+                                        <TextField
+                                            id="apellidoPaterno"
+                                            name="apellidoPaterno"
+                                            inputProps={{ maxLength: 40 }}
+                                            onChange={handleChange}
+                                            value={empleadoSeleccionado.apellidoPaterno ? empleadoSeleccionado.apellidoPaterno : ''}
+                                            required
+                                            className={classes.selectTipoEmp}
+                                            label="Apellido Paterno"
+                                            error={errores.apellidoPaterno}
+                                            onInput={soloLetras} />
+                                    </Grid>
+                                    <Grid item lg={4} md={4} sm={6} xs={12} >
+                                        <TextField
+                                            id="apellidoMaterno"
+                                            name="apellidoMaterno"
+                                            inputProps={{ maxLength: 40 }}
+                                            onChange={handleChange}
+                                            value={empleadoSeleccionado.apellidoMaterno ? empleadoSeleccionado.apellidoMaterno : ''}
+                                            required
+                                            className={classes.selectTipoEmp}
+                                            label="Apellido Materno"
+                                            error={errores.apellidoMaterno}
+                                            onInput={soloLetras} />
+                                    </Grid>
                                 </Grid>
-                                <Grid item lg={4} md={4} sm={6} xs={12} >
-                                    <TextField
-                                        id="apellidoPaterno"
-                                        name="apellidoPaterno"
-                                        inputProps={{ maxLength: 40 }}
-                                        onChange={handleChange}
-                                        value={datos.apellidoPaterno}
+                                <Grid item lg={12} md={12} sm={12} xs={12} className={classes.segContenedorForm}>
+                                    <Grid item lg={4} md={4} sm={6} xs={12} >
+                                        <TextField
+                                            id="fechaNacimiento"
+                                            name="fechaNacimiento"
+                                            label="Fecha Nacimiento"
+                                            type="date"
+                                            required
+                                            error={errores.fechaNacimiento}
+                                            onChange={onDateChange}
+                                            defaultValue={empleadoSeleccionado.fechaNacimiento ? moment(empleadoSeleccionado.fechaNacimiento).format("YYYY-MM-DD") : moment().format("YYYY-MM-DD")}
+                                            className={classes.selectTipoEmp}
+                                            InputLabelProps={{
+                                            shrink: true,
+                                            }}
+                                        />
+                                    </Grid>
+                                    <Grid item lg={4} md={4} sm={6} xs={12} >
+                                    <FormControl className={classes.selectTipoEmp}>
+                                        <InputLabel id="demo-simple-select-label">Tipo Empleado</InputLabel>
+                                        <Select
+                                        labelId="demo-simple-select-label"
+                                        id="tipoEmpleadoId"
+                                        name="tipoEmpleadoId"
                                         required
-                                        className={classes.selectTipoEmp}
-                                        label="Apellido Paterno"
-                                        error={errores.apellidoPaterno}
-                                        onInput={soloLetras} />
-                                </Grid>
-                                <Grid item lg={4} md={4} sm={6} xs={12} >
-                                    <TextField
-                                        id="apellidoMaterno"
-                                        name="apellidoMaterno"
-                                        inputProps={{ maxLength: 40 }}
+                                        error={errores.tipoEmpleadoId}
+                                        value={Number.parseInt(empleadoSeleccionado.tipoEmpleadoId) ? Number.parseInt(empleadoSeleccionado.tipoEmpleadoId) : 0}
                                         onChange={handleChange}
-                                        value={datos.apellidoMaterno}
+                                        >
+                                        <MenuItem disabled value={0}>
+                                            <em>Seleccione</em>
+                                        </MenuItem>
+                                        {tipoEmpleado?.map((dato, index) => (
+                                            <MenuItem key={index} value={dato.id}>{dato.tipoEmpleado}</MenuItem>
+                                        ))}
+                                        </Select>
+                                    </FormControl>
+                                    </Grid>
+                                    <Grid item lg={4} md={4} sm={6} xs={12} >
+                                    <FormControl className={classes.selectTipoEmp}>
+                                        <InputLabel id="demo-simple-select-label">Jornada Laboral hrs</InputLabel>
+                                        <Select
+                                        labelId="demo-simple-select-label"
+                                        id="tipoEmpleadoId"
+                                        name="jornadaLaboralId"
                                         required
-                                        className={classes.selectTipoEmp}
-                                        label="Apellido Materno"
-                                        error={errores.apellidoMaterno}
-                                        onInput={soloLetras} />
-                                </Grid>
-                            </Grid>
-                            <Grid item lg={12} md={12} sm={12} xs={12} className={classes.segContenedorForm}>
-                                <Grid item lg={4} md={4} sm={6} xs={12} >
-                                    <TextField
-                                        id="fechaNac"
-                                        name="fechaNac"
-                                        label="Fecha Nacimiento"
-                                        type="date"
-                                        required
-                                        error={errores.fechaNac}
-                                        onChange={onDateChange}
-                                        defaultValue={fechaSeleccionada}
-                                        className={classes.selectTipoEmp}
-                                        InputLabelProps={{
-                                        shrink: true,
-                                        }}
-                                    />
-                                </Grid>
-                                <Grid item lg={4} md={4} sm={6} xs={12} >
-                                <FormControl className={classes.selectTipoEmp}>
-                                    <InputLabel id="demo-simple-select-label">Tipo Empleado</InputLabel>
-                                    <Select
-                                    labelId="demo-simple-select-label"
-                                    id="tipoEmpleados"
-                                    name="tipoEmpleados"
-                                    required
-                                    error={errores.tipoEmpleados}
-                                    value={datos.tipoEmpleados ? datos.tipoEmpleados : 'Seleccione'}
-                                    onChange={handleChange}
-                                    >
-                                    <MenuItem value={10}>Ten</MenuItem>
-                                    <MenuItem value={20}>Twenty</MenuItem>
-                                    <MenuItem value={30}>Thirty</MenuItem>
-                                    </Select>
-                                </FormControl>
-                                </Grid>
-                                <Grid item lg={4} md={4} sm={6} xs={12} >
-                                <FormControl className={classes.selectTipoEmp}>
-                                    <InputLabel id="demo-simple-select-label">Jornada Laboral hrs</InputLabel>
-                                    <Select
-                                    labelId="demo-simple-select-label"
-                                    id="jornadaLaboral"
-                                    name="jornadaLaboral"
-                                    required
-                                    error={errores.jornadaLaboral}
-                                    value={datos.jornadaLaboral ? datos.jornadaLaboral : 'Seleccione'}
-                                    onChange={handleChange}
-                                    >
-                                    <MenuItem value={10}>Ten</MenuItem>
-                                    <MenuItem value={20}>Twenty</MenuItem>
-                                    <MenuItem value={30}>Thirty</MenuItem>
-                                    </Select>
-                                </FormControl>
-                                </Grid>
-                            </Grid>
-                            <Grid item lg={12} md={12} sm={12} xs={12} className={classes.segContenedorForm}>
-                                <Grid item lg={4} md={4} sm={6} xs={12} >
-                                    <TextField
-                                        id="domicilio"
-                                        name="domicilio"
-                                        inputProps={{ maxLength: 40 }}
+                                        error={errores.jornadaLaboral}
+                                        value={Number.parseInt(empleadoSeleccionado.jornadaLaboralId) ? Number.parseInt(empleadoSeleccionado.jornadaLaboralId) : 0}
                                         onChange={handleChange}
-                                        value={datos.domicilio}
-                                        className={classes.selectTipoEmp}
-                                        label="Domicilio"
-                                        onInput={NumerosLetras} />
+                                        >
+                                        <MenuItem disabled value={0}>
+                                            <em>Seleccione</em>
+                                        </MenuItem>
+                                        {jornada?.map((dato, index) => (
+                                            <MenuItem key={index} value={dato.id}>{dato.horasLaborales}</MenuItem>
+                                        ))}
+                                        </Select>
+                                    </FormControl>
+                                    </Grid>
                                 </Grid>
-                                <Grid item lg={4} md={4} sm={6} xs={12} >
-                                <FormControl className={classes.selectTipoEmp}>
-                                    <InputLabel id="demo-simple-select-label">Rol</InputLabel>
-                                    <Select
-                                    labelId="demo-simple-select-label"
-                                    id="rol"
-                                    name="rol"
-                                    required
-                                    error={errores.rol}
-                                    value={datos.rol ? datos.rol : 'Seleccione'}
-                                    onChange={handleChange}
-                                    >
-                                    <MenuItem value={10}>Ten</MenuItem>
-                                    <MenuItem value={20}>Twenty</MenuItem>
-                                    <MenuItem value={30}>Thirty</MenuItem>
-                                    </Select>
-                                </FormControl>
+                                <Grid item lg={12} md={12} sm={12} xs={12} className={classes.segContenedorForm}>
+                                    <Grid item lg={4} md={4} sm={6} xs={12} >
+                                        <TextField
+                                            id="domicilio"
+                                            name="domicilio"
+                                            inputProps={{ maxLength: 40 }}
+                                            onChange={handleChange}
+                                            value={empleadoSeleccionado.domicilio}
+                                            className={classes.selectTipoEmp}
+                                            label="Domicilio"
+                                            onInput={NumerosLetras} />
+                                    </Grid>
+                                    <Grid item lg={4} md={4} sm={6} xs={12} >
+                                    <FormControl className={classes.selectTipoEmp}>
+                                        <InputLabel id="demo-simple-select-label">Rol</InputLabel>
+                                        <Select
+                                        labelId="demo-simple-select-label"
+                                        id="rolId"
+                                        name="rolId"
+                                        required
+                                        error={errores.rol}
+                                        value={Number.parseInt(empleadoSeleccionado.rolId) ? Number.parseInt(empleadoSeleccionado.rolId) : 0}
+                                        onChange={handleChange}
+                                        >
+                                        <MenuItem disabled value={0}>
+                                            <em>Seleccione</em>
+                                        </MenuItem>
+                                        {rol?.map((dato, index) => (
+                                            <MenuItem key={index} value={dato.id}>{dato.nombreRol}</MenuItem>
+                                        ))}
+                                        </Select>
+                                    </FormControl>
+                                    </Grid>
+                                </Grid>
+                                <Grid item lg={12} md={12} sm={12} xs={12} className={classes.segContenedorForm}>
+                                    <Grid item lg={6} md={6} sm={12} xs={12} className={classes.contenedorBtnGuardar}>
+                                        <Button variant="contained" type="submit" className={classes.btnGuardar}>Guardar</Button>
+                                    </Grid>
+                                    <Grid item lg={6} md={6} sm={12} xs={12} >
+                                        <Button variant="contained" className={classes.btnCancelar}>Cancelar</Button>
+                                    </Grid>
                                 </Grid>
                             </Grid>
-                            <Grid item lg={12} md={12} sm={12} xs={12} className={classes.segContenedorForm}>
-                                <Grid item lg={6} md={6} sm={12} xs={12} className={classes.contenedorBtnGuardar}>
-                                    <Button variant="contained" type="submit" className={classes.btnGuardar}>Guardar</Button>
-                                </Grid>
-                                <Grid item lg={6} md={6} sm={12} xs={12} >
-                                    <Button variant="contained" className={classes.btnCancelar}>Cancelar</Button>
-                                </Grid>
-                            </Grid>
+                        </form>  
                         </Grid>
-                    </form>  
                     </Grid>
                 </Grid>
+                
             </Grid>
-             
-        </Grid>
-       
-    )
+        )
+    }
 }
+const mapStateToProps = ({ Usuario, Empleado, }) => ({
+    Usuario,
+    Empleado,
+  });
+  
+  const mapDispatchToProps = (dispatch) => ({
+    actions: {
+      empleado: bindActionCreators(EmpleadoActions, dispatch),
+      usuario: bindActionCreators(UsuarioActions, dispatch),
+    },
+    
+  });
+  
+  export default connect(mapStateToProps, mapDispatchToProps)(withStyles(empleadoStyles,{ withTheme: true })(EditarEmpleado));
+  
