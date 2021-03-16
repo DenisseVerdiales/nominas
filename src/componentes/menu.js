@@ -167,7 +167,8 @@ const Menu = () => {
     const obtenerOpcionMenu = () => {
         consultarStorage(OPCIONMENU)
           .then((valor) => {
-            if (valor !== null || valor !== 0) {
+            if (valor !== null) {
+              console.log("MENU OPCION",valor)
               setBtnOpciones(Number.parseInt(valor));
             } 
           });

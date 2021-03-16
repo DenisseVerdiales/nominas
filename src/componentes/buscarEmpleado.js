@@ -25,7 +25,14 @@ import * as EmpleadoActions from '../store/Acciones/empleadoActions';
 import * as UsuarioActions from '../store/Acciones/usuarioActions';
 import {soloLetras, SoloNumeros} from '../utilidades/validar';
 import { almacenarStorage,consultarStorage,consultarObjetoStorage } from '../utilidades/asyncStorage';
-import {EMPLEADOSCONSULTADOS,OBTENEREMPLEADOS,COMBOSCONSULTADOS,CBOTIPOEMPLEADO,CBOROL,OPCIONMENU,IDEMPLEADO} from '../constantes/constantes';
+import {EMPLEADOSCONSULTADOS,
+        OBTENEREMPLEADOS,
+        COMBOSCONSULTADOS,
+        CBOTIPOEMPLEADO,
+        CBOROL,
+        OPCIONMENU,
+        IDEMPLEADO
+} from '../constantes/constantes';
 
 const empleadoStyles = theme =>  ({
     contenedor:{

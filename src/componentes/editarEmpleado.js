@@ -59,7 +59,10 @@ const empleadoStyles = theme =>  ({
     contenedorFormGeneral:{
         padding:'20px 90px',
         border:'1px solid #DFE2E4'
-    }
+    },
+    contenedorFormularioDatos:{
+        width: '100%'
+    },
 })
 
 class EditarEmpleado extends Component {
@@ -319,7 +322,7 @@ class EditarEmpleado extends Component {
                     <Typography className={classes.txtTitulo}>Edición de empleados</Typography>
                     <Grid item lg={12} md={12} sm={12} xs={12} >
                         <Grid container className={classes.contenedor}>
-                        <form noValidate={true} onSubmit={this.valida}>
+                        <form noValidate={true} onSubmit={this.valida} className={classes.contenedorFormularioDatos}>
                             <Grid item lg={12} md={12} sm={12} xs={12} className={classes.contenedorFormGeneral}>
                         
                                 <Grid item lg={12} md={12} sm={12} xs={12} className={classes.contenedorFormulario}>
