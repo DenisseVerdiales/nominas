@@ -74,7 +74,8 @@ class EditarEmpleado extends Component {
             tipoEmpleado:[],
             jornada:[],
             rol:[],
-            empleadoSeleccionado:{}
+            empleadoSeleccionado:{},
+            siguienteID:''
         };
     }
 
@@ -94,7 +95,6 @@ class EditarEmpleado extends Component {
 
     consultarEmpleado(idREmpleado){
         const { actions: { empleado } } = this.props;
-        const datos={id: idREmpleado}
         empleado.obtenerEmpleadoPorId(Number.parseInt(idREmpleado))
         .then((resp)=>{
             this.setState({empleadoSeleccionado:resp})
@@ -158,7 +158,7 @@ class EditarEmpleado extends Component {
             tipoEmpleado: Empleado.tipoEmpleado,
             jornada: Empleado.jornadaLaboral,
             rol: Empleado.rol
-        });
+        },this.obtenerSiguienteID);
     }
 
     obtenerStorageCboTipo() {
@@ -214,6 +214,18 @@ class EditarEmpleado extends Component {
         usuario.verificarSesionLocal()
         .then(()=>{
             this.obtenerCombos();
+        })
+    }
+
+    obtenerSiguienteID(){
+        const {actions:{empleado}} = this.props;
+
+        empleado.obtenerEmpleadoId()
+        .then((dato)=>{
+            dato.map((d,index)=>{
+                this.setState({siguienteID: Object.values(d)})
+            })
+            
         })
     }
 
@@ -298,13 +310,12 @@ class EditarEmpleado extends Component {
     }
 
     render(){
-        const {errores,tipoEmpleado,jornada,rol, empleadoSeleccionado} = this.state;
+        const {errores,tipoEmpleado,jornada,rol, empleadoSeleccionado, siguienteID} = this.state;
         const { classes} = this.props;
 
         const handleChange = (e) => {
             const {empleadoSeleccionado}=this.state;
             let datosInput = {...empleadoSeleccionado,[e.target.name]: e.target.value };
-            console.log(datosInput);
             this.setState({empleadoSeleccionado:datosInput});
         }
 
@@ -324,7 +335,16 @@ class EditarEmpleado extends Component {
                         <Grid container className={classes.contenedor}>
                         <form noValidate={true} onSubmit={this.valida} className={classes.contenedorFormularioDatos}>
                             <Grid item lg={12} md={12} sm={12} xs={12} className={classes.contenedorFormGeneral}>
-                        
+                                <Grid item lg={4} md={4} sm={6} xs={12}>
+                                    <TextField
+                                        id="noEmpleado"
+                                        name="noEmpleado"
+                                        disabled={true}
+                                        className={classes.selectTipoEmp}
+                                        value={siguienteID[0] ? siguienteID[0]+1 : 0}
+                                        label="Número de Empleado"
+                                    />
+                                </Grid>
                                 <Grid item lg={12} md={12} sm={12} xs={12} className={classes.contenedorFormulario}>
                                     <Grid item lg={4} md={4} sm={6} xs={12}>
                                         <TextField

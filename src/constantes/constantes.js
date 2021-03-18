@@ -19,10 +19,14 @@ const IDEMPLEADO = 'IDEMPLEADO';
 const OBTENERBONOENTREGAS = 'OBTENERBONOENTREGAS';
 const OBTNERMOVIMIENTOS = 'OBTNERMOVIMIENTOS';
 const MOVIMIENTOSCONSULTADOS = 'MOVIMIENTOSCONSULTADOS';
+const IDMOVIMIENTO = 'IDMOVIMIENTO';
+const DATOS_REPORTE = 'DATOS_REPORTE';
 
 //Empleados
 const BASE_EMPLEADO = 'empleados/';
 const URL_EMPLEADOID = 'empleadoId/';
+const URL_REPORTE = 'reporte/';
+const URL_IDSIGUIENTE = 'siguienteId';
 
 //Tipo Empleado
 const BASE_TIPO_EMPLEADO = 'tipoEmpleado/';
@@ -33,8 +37,14 @@ const BASE_JORNADA_LABORAL = 'jornadaLaboral/';
 //ROl
 const BASE_ROL = 'rol/';
 
+
+//ROL AUXILIAR
+const ROL_AUXILIAR = 3;
+
 //Movimientos
 const BASE_MOVIMIENTOS = 'movimientos/';
+const URL_MOVIMIENTOID = 'movimientoId/';
+const URL_FECHAMOVIMIENTO = 'movimientoFecha/'
 
 //Tipo BONO
 const BASE_TIPOBONO = 'tipoBono/';
@@ -70,5 +80,12 @@ export {
     OBTENERBONOENTREGAS,
     BONOPORENTREGA,
     OBTNERMOVIMIENTOS,
-    MOVIMIENTOSCONSULTADOS
+    MOVIMIENTOSCONSULTADOS,
+    IDMOVIMIENTO,
+    URL_MOVIMIENTOID,
+    ROL_AUXILIAR,
+    URL_REPORTE,
+    DATOS_REPORTE,
+    URL_FECHAMOVIMIENTO,
+    URL_IDSIGUIENTE
 }

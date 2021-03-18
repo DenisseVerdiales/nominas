@@ -9,7 +9,9 @@ import {
   OBTENER_EMPLEADOS,
   ELIMINAR_EMPLEADO,
   OBTENER_EMPLEADOPORID,
-  ACTUALIZAR_EMPLEADO
+  ACTUALIZAR_EMPLEADO,
+  OBTENER_REPORTE,
+  OBTENERIDSIGUIENTE
 } from '../../constantes/types';
 import {
     BASE_EMPLEADO,
@@ -20,7 +22,10 @@ import {
     CBOJORNADA,
     CBOROL,
     OBTENEREMPLEADOS,
-    URL_EMPLEADOID
+    URL_EMPLEADOID,
+    URL_REPORTE,
+    DATOS_REPORTE,
+    URL_IDSIGUIENTE
 } from '../../constantes/constantes';
 import { almacenarObjetoStorage } from '../../utilidades/asyncStorage';
 
@@ -185,6 +190,43 @@ import { almacenarObjetoStorage } from '../../utilidades/asyncStorage';
           .get(`${BASE_EMPLEADO}${URL_EMPLEADOID}`, {params:{id: JSON.stringify(empleadoId)}})
           .then(({ data }) => {
             dispatch({ type: OBTENER_EMPLEADOPORID, payload: data });
+            resolve(data);
+          })
+          .catch((error) => {
+            reject(error);
+          })
+          .finally(() => dispatch({ type: END_AJAX }));
+      },
+    );
+  };
+
+  export const obtenerEmpleadoId= () => (dispatch) => {
+    dispatch({ type: START_AJAX });
+    return new Promise(
+      (resolve, reject) => {
+        axiosConfig
+          .get(`${BASE_EMPLEADO}${URL_IDSIGUIENTE}`, {})
+          .then(({ data }) => {
+            dispatch({ type: OBTENERIDSIGUIENTE, payload: data });
+            resolve(data);
+          })
+          .catch((error) => {
+            reject(error);
+          })
+          .finally(() => dispatch({ type: END_AJAX }));
+      },
+    );
+  };
+
+  export const generarReporte= (empleado) => (dispatch) => {
+    dispatch({ type: START_AJAX });
+    return new Promise(
+      (resolve, reject) => {
+        axiosConfig
+          .get(`${BASE_EMPLEADO}${URL_REPORTE}`, {params:{pIdEmpleado: JSON.stringify(empleado.id), pMes:  JSON.stringify(empleado.mes)}})
+          .then(({ data }) => {
+            almacenarObjetoStorage(DATOS_REPORTE,data);
+            dispatch({ type: OBTENER_REPORTE, payload: data });
             resolve(data);
           })
           .catch((error) => {

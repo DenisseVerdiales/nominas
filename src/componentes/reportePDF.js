@@ -1,8 +1,10 @@
-import React from 'react';
-import { Page, Text, View, Document, StyleSheet } from '@react-pdf/renderer';
-import { makeStyles,withStyles } from '@material-ui/core/styles';
+import React,{Component} from 'react';
+import { Page, Text, View, Document, StyleSheet,PDFDownloadLink } from '@react-pdf/renderer';
+import {consultarObjetoStorage } from '../utilidades/asyncStorage';
+import {DATOS_REPORTE} from '../constantes/constantes';
 
-const reporteStyles = makeStyles((theme) => ({
+
+const reporteStyles = StyleSheet.create({
     pagina: {
         flexDirection: 'row',
         backgroundColor: '#E4E4E4'
@@ -12,22 +14,61 @@ const reporteStyles = makeStyles((theme) => ({
         padding: 10,
         flexGrow: 1
       }
-}));
+});
 
 // Create Document Component
-export default function ReportePDF(){
-const classes = reporteStyles();
+class ReportePDF extends Component  {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      isReady:false,
+      cargar:true,
+    };
+}
+
+componentDidMount(){
+  const {cargar}= this.state;
+  if(cargar){
+    this.setState({isReady:true,cargar:false});
+    
+  }
+   
+}
+
+
+ render(){
+   const {isReady}= this.state;
+   
 
     return(
-  <Document>
-    <Page size="A4" className={classes.pagina}>
-      <View className={classes.section}>
-        <Text>Section #1</Text>
-      </View>
-      <View className={classes.section}>
-        <Text>Section #2</Text>
-      </View>
-    </Page>
-  </Document>
+    <>
+    {isReady &&(
+      <Document>
+        <Page size="A4" style={reporteStyles.pagina}>
+          <View style={reporteStyles.section}>
+            
+          <View style={reporteStyles.section}>
+            
+            <Text>Hola</Text>
+         
+         
+        </View>
+           
+           
+          </View>
+          <View style={reporteStyles.section}>
+            <Text>Section #2</Text>
+          </View>
+        </Page>
+      </Document>
+         
+  )}
+  
+  </>
     );
+ }
 }
+
+export default ReportePDF;
+

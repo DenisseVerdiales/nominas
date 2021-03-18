@@ -14,14 +14,14 @@ import {
   USUARIO_SESION,
   COMBOSCONSULTADOS,
   EMPLEADOSCONSULTADOS,
-  MOVIMIENTOSCONSULTADOS
+  MOVIMIENTOSCONSULTADOS,
+  OPCIONMENU
 } from '../../constantes/constantes';
 import { almacenarObjetoStorage, consultarObjetoStorage,almacenarStorage } from '../../utilidades/asyncStorage';
 import swal from 'sweetalert';
 
 
 export const loginUsuario = (usuario) => (dispatch) => {
-  console.log(`${BASE_SESION}${URL_INICIAR_SESION}`);
   dispatch({ type: START_AJAX });
   return new Promise(
     (resolve, reject) => {
@@ -31,12 +31,12 @@ export const loginUsuario = (usuario) => (dispatch) => {
           contrasena: md5(usuario.contrasena)
         })
         .then(({ data }) => {
-          console.log("Respuesta",data);
           if (data) {
               almacenarObjetoStorage(USUARIO_SESION, data);
               almacenarStorage(COMBOSCONSULTADOS,false);
               almacenarStorage(EMPLEADOSCONSULTADOS,false);
               almacenarStorage(MOVIMIENTOSCONSULTADOS,false);
+              almacenarStorage(OPCIONMENU,0);
               axiosConfig.defaults.headers.common.APITOKEN = data.token;
               dispatch({ type: INICIAR_SESION, payload: data });
               resolve();
@@ -82,8 +82,8 @@ export const logoutUsuario = (usuario, CambiarRuta) => (dispatch) => {
         .post(`${BASE_SESION}${URL_CERRAR_SESION}`, usuario)
         .then(() => {
           almacenarObjetoStorage(USUARIO_SESION, {});
-          delete axiosConfig.defaults.headers.common.APITOKEN;
           CambiarRuta();
+          delete axiosConfig.defaults.headers.common.APITOKEN;
           dispatch({ type: CERRAR_SESION, payload: null });
           resolve();
         })
@@ -97,7 +97,6 @@ export const logoutUsuario = (usuario, CambiarRuta) => (dispatch) => {
 
 export const verificarSesionLocal = () => (dispatch) => new Promise((resolve, reject) => {
   consultarObjetoStorage(USUARIO_SESION).then((usuarioSesion) => {
-    console.log("LOCAL",usuarioSesion);
     if (usuarioSesion && Object.getOwnPropertyNames(usuarioSesion).length !== 0) {
       axiosConfig.defaults.headers.common.APITOKEN = usuarioSesion.token;
       dispatch({ type: VALIDAR_SESION_LOCAL, payload: usuarioSesion });
@@ -113,3 +112,5 @@ export const verificarSesionLocal = () => (dispatch) => new Promise((resolve, re
     reject(error);
   });
 });
+
+

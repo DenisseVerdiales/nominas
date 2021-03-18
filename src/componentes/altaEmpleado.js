@@ -58,7 +58,11 @@ const empleadoStyles = theme =>  ({
     },
     contenedorFormGeneral:{
         padding:'20px 90px',
-        border:'1px solid #DFE2E4'
+        border:'1px solid #DFE2E4',
+        [theme.breakpoints.down('md')]: {
+            padding: '20px 20px'
+        },
+        
     },
     contenedorFormularioDatos:{
         width: '100%'
@@ -75,12 +79,14 @@ class AltaEmpleado extends Component {
             errores:{},
             tipoEmpleado:[],
             jornada:[],
-            rol:[]
+            rol:[],
+            siguienteID:''
         };
     }
 
    componentDidMount() {
         this.consultarStorageCombos();
+      
     }
 
     consultarStorageCombos(){
@@ -95,8 +101,21 @@ class AltaEmpleado extends Component {
     }
 
     cancelarAlta(){
-        console.log("LLEGO CANCELAR ALTA");
-        almacenarStorage(OPCIONMENU,0);
+        almacenarStorage(OPCIONMENU,0)
+        .then(()=>{
+            consultarStorage(OPCIONMENU)
+        })
+    }
+    obtenerSiguienteID(){
+        const {actions:{empleado}} = this.props;
+
+        empleado.obtenerEmpleadoId()
+        .then((dato)=>{
+            dato.map((d,index)=>{
+                this.setState({siguienteID: Object.values(d)})
+            })
+            
+        })
     }
 
     obtenerCombos(){
@@ -145,7 +164,7 @@ class AltaEmpleado extends Component {
             tipoEmpleado: Empleado.tipoEmpleado,
             jornada: Empleado.jornadaLaboral,
             rol: Empleado.rol
-        });
+        },this.obtenerSiguienteID);
     }
 
     obtenerStorageCboTipo() {
@@ -282,7 +301,7 @@ class AltaEmpleado extends Component {
 
     
     render(){
-        const {errores,datos,fechaSeleccionada,tipoEmpleado,jornada,rol} = this.state;
+        const {errores,datos,fechaSeleccionada,tipoEmpleado,jornada,rol,siguienteID} = this.state;
         const { classes} = this.props;
 
         const handleChange = (e) => {
@@ -308,7 +327,17 @@ class AltaEmpleado extends Component {
                 <Grid container className={classes.contenedor}>
                 <form noValidate={true} onSubmit={this.valida} className={classes.contenedorFormularioDatos}>
                     <Grid item lg={12} md={12} sm={12} xs={12} className={classes.contenedorFormGeneral}>
-                 
+                        <Grid item lg={4} md={4} sm={6} xs={12}>
+                            <TextField
+                                id="noEmpleado"
+                                name="noEmpleado"
+                                disabled={true}
+                                className={classes.selectTipoEmp}
+                                value={siguienteID[0] ? siguienteID[0]+1 : 0}
+                                label="Número de Empleado"
+                            />
+    
+                        </Grid>
                         <Grid item lg={12} md={12} sm={12} xs={12} className={classes.contenedorFormulario}>
                             <Grid item lg={4} md={4} sm={6} xs={12}>
                                 <TextField

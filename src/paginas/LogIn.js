@@ -115,8 +115,7 @@ class Login extends Component {
     }
 
     verificarSesionLocal() {
-        const { actions: { usuario } } = this.props;
-        const { history } = this.props;
+        const { actions: { usuario },history } = this.props;
         usuario.verificarSesionLocal().then((resp) => {
           if (resp) {
              history.replace("/principal");
@@ -132,8 +131,7 @@ class Login extends Component {
     }
 
     validarLogIn(){
-        const { history } = this.props;
-        const { actions: { usuario } } = this.props;
+        const { actions: { usuario },history } = this.props;
         const {nombreUsuario,contrasena} = this.state;
         if(!nombreUsuario || !contrasena){
             swal({

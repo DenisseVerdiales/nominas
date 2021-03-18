@@ -1,6 +1,6 @@
-import React from 'react';
+import React,{Component} from 'react';
 import clsx from 'clsx';
-import { makeStyles } from '@material-ui/core/styles';
+import { withStyles } from '@material-ui/core/styles';
 import Drawer from '@material-ui/core/Drawer';
 import List from '@material-ui/core/List';
 import CssBaseline from '@material-ui/core/CssBaseline';
@@ -13,7 +13,11 @@ import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import Collapse from '@material-ui/core/Collapse';
 import {ExpandLess,ExpandMore} from '@material-ui/icons';
-import {FaUserCircle,FaClipboardList} from 'react-icons/all';
+import {Grid}from '@material-ui/core';
+import {FaUserCircle,FaClipboardList,FaSignOutAlt} from 'react-icons/all';
+import { withRouter } from 'react-router-dom';
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
 import logo from '../assets/imagenes/logo.png'
 import AltaEmpleado from './altaEmpleado';
 import BuscarEmpleado from './buscarEmpleado';
@@ -21,12 +25,14 @@ import AltaMovimiento from './altaMovimiento';
 import BuscarMovimiento from './buscarMovimiento';
 import ReporteMovimiento from './reporteMovimiento';
 import EditarEmpleado from './editarEmpleado';
+import EditarMovimiento from './editarMovimiento';
+import * as UsuarioActions from '../store/Acciones/usuarioActions';
 import {consultarStorage,almacenarStorage } from '../utilidades/asyncStorage';
 import {OPCIONMENU} from '../constantes/constantes';
 
 const drawerWidth = 240;
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = theme =>  ({
   root: {
     display: 'flex',
   },
@@ -69,7 +75,7 @@ const useStyles = makeStyles((theme) => ({
     '& :hover':{
         background: '#e0dacd', 
     },
-    maxHeight: 135,
+    maxHeight: '40vh',
     padding: '10px 0px'
   },
   toolbarOpen:{
@@ -80,6 +86,7 @@ const useStyles = makeStyles((theme) => ({
         easing: theme.transitions.easing.sharp,
         duration: theme.transitions.duration.enteringScreen,
       }),
+      position: 'fixed'
   },
   toolbarClose:{
     transition: theme.transitions.create('width', {
@@ -91,6 +98,7 @@ const useStyles = makeStyles((theme) => ({
       [theme.breakpoints.up('sm')]: {
         width: theme.spacing(9) + 1,
       },
+      position: 'fixed'
   },
   content: {
     flexGrow: 1,
@@ -139,127 +147,171 @@ const useStyles = makeStyles((theme) => ({
     link: {
         textDecoration: 'none'
     },
-}));
+    contenedorOpciones:{
+      justifyContent: 'center',
+      maxWidth: '100%',
+      marginLeft: 42
+    },
+    contenedorOpcionesMenuAbierto:{
+      maxWidth: '90%',
+      justifyContent: 'flex-end'
+    }
+   
+});
+class Menu extends Component {
+  constructor(props) {
+    super(props);
 
-const Menu = () => {
-    const classes = useStyles();
-    const [open, setOpen] = React.useState(false);
-    const [openOption, setOpenOption] = React.useState(false);
-    const [openOptionM, setOpenOptionM] = React.useState(false);
-    const [btnOpciones, setBtnOpciones] = React.useState(0);
+    this.state = {
+        open: false,
+        openOption: false,
+        openOptionM:false,
+        btnOpciones: 0
+    };
+    this.cerrarSesion = this.cerrarSesion.bind(this);
+  }
+  componentDidMount() {
+    this.obtenerOpcionMenu();
+  }
 
-    React.useEffect(() => {
-          obtenerOpcionMenu();
-    })
 
-    const handleDrawer = () => {
-      setOpen(!open);
+    handleDrawer = () => {
+      const {open} = this.state;
+      this.setState({open: !open});
     };
     
-    const handleClickEmpleado = () => {
-        setOpenOption(!openOption);
+    handleClickEmpleado = () => {
+      const {openOption} = this.state;
+      this.setState({openOption: !openOption});
     };
 
-    const handleClickMovimiento = () => {
-        setOpenOptionM(!openOptionM);
+    handleClickMovimiento = () => {
+      const {openOptionM} = this.state;
+      this.setState({openOptionM: !openOptionM});
     };
 
-    const obtenerOpcionMenu = () => {
-        consultarStorage(OPCIONMENU)
-          .then((valor) => {
-            if (valor !== null) {
-              console.log("MENU OPCION",valor)
-              setBtnOpciones(Number.parseInt(valor));
-            } 
-          });
+    obtenerOpcionMenu = () => {
+      consultarStorage(OPCIONMENU)
+        .then((valor) => {
+          if (valor !== null) {
+            this.setState({btnOpciones: Number.parseInt(valor)});
+          } 
+        });
     }
 
-  return (
-    <div className={classes.root}>
-    <CssBaseline />
-    <div className={clsx(classes.toolbar,{[classes.toolbarOpen]: open,
-        [classes.toolbarClose]: !open,})}>
-        <IconButton onClick={handleDrawer} className={classes.IconoFlecha}>
-          {!open ? <ChevronRightIcon /> : <ChevronLeftIcon />}
-        </IconButton>
-      </div>
-    <Drawer
-      variant="permanent"
-      classes={{
-        paper: clsx({
-          [classes.drawerOpen]: open,
-          [classes.drawerClose]: !open,
-        }),
-      }}
-    >
-     
-      <Divider />
-        <List className={classes.listaLogo}>
-            <ListItem button key={"Rinku"}>
-                <ListItemIcon><img className={classes.imgLogo} src={logo} alt="logo" /></ListItemIcon>
-                <ListItemText primary={"Rinku"} className={classes.txtEmpresa}/>
-            </ListItem>
-      </List>
-      <Divider />
-      <List className={classes.listaContenido}>
-        <ListItem button key={"Empleados"} onClick={handleClickEmpleado}>
-            <ListItemIcon><FaUserCircle className={classes.iconoMenu}/></ListItemIcon>
-            <ListItemText primary={"Empleados"} className={classes.txtMenu}/>
-            {openOption ? <ExpandLess className={classes.txtMenu}/> : <ExpandMore className={classes.txtMenu}/>}
-        </ListItem>
-        <Collapse in={openOption} timeout="auto" unmountOnExit>
-        <List component="div" disablePadding>
-            <ListItem button className={classes.contenedorSubMenu} onClick={() => {setBtnOpciones(1); almacenarStorage(OPCIONMENU,1);}}>
-                <ListItemText primary="Nuevo" className={classes.txtMenu}/>
-            </ListItem>
-            <ListItem button className={classes.contenedorSubMenu} onClick={() => {setBtnOpciones(2);almacenarStorage(OPCIONMENU,2);}}>
-            <ListItemText primary="Buscar" className={classes.txtMenu}/>
-            </ListItem>
-        </List>
-      </Collapse>
-        <ListItem button key={"Movimientos"} onClick={handleClickMovimiento}>
-            <ListItemIcon><FaClipboardList className={classes.iconoMenu}/></ListItemIcon>
-            <ListItemText primary={"Movimientos"} className={classes.txtMenu}/>
-            {openOptionM ? <ExpandLess className={classes.txtMenu}/> : <ExpandMore className={classes.txtMenu}/>}
-        </ListItem>
-        <Collapse in={openOptionM} timeout="auto" unmountOnExit>
-        <List component="div" disablePadding>
-          <ListItem button className={classes.contenedorSubMenu} onClick={() => {setBtnOpciones(3);almacenarStorage(OPCIONMENU,3);}}>
-            <ListItemText primary="Nuevo" className={classes.txtMenu}/>
-          </ListItem>
-          <ListItem button className={classes.contenedorSubMenu} onClick={() => {setBtnOpciones(4); almacenarStorage(OPCIONMENU,4);}}>
-            <ListItemText primary="Buscar" className={classes.txtMenu}/>
-          </ListItem>
-          <ListItem button className={classes.contenedorSubMenu} onClick={() => {setBtnOpciones(5); almacenarStorage(OPCIONMENU,5);}}>
-            <ListItemText primary="Reporte" className={classes.txtMenu}/>
-          </ListItem>
-        </List>
-      </Collapse>
-      </List>
-    </Drawer>
-    <main className={classes.content}>
-      <div className={classes.toolbar} />
-      {btnOpciones === 1 &&(
-        <AltaEmpleado/>
-      )}
-      {btnOpciones === 2 &&(
-          <BuscarEmpleado/>
-      )}
-      {btnOpciones === 3 &&(
-          <AltaMovimiento/>
-      )}
-      {btnOpciones === 4 &&(
-          <BuscarMovimiento/>
-      )}
-      {btnOpciones === 5 &&(
-          <ReporteMovimiento/>
-      )}
-      {btnOpciones === 6 && (
-        <EditarEmpleado/>
-      )}
-    </main>
-  </div>
-  );
-};
+    cerrarSesion(){
+      const {actions: { usuario },history,Usuario} = this.props;
+      usuario.logoutUsuario(Usuario, () => {history.replace('/')})
+    }
 
-export default Menu;
+    render(){
+      const {openOptionM,open,openOption,btnOpciones} = this.state;
+      const { classes} = this.props;
+
+      return (
+        <div className={classes.root}>
+        <CssBaseline />
+        <div className={clsx(classes.toolbar,{[classes.toolbarOpen]: open,
+            [classes.toolbarClose]: !open,})}>
+            <IconButton onClick={this.handleDrawer} className={classes.IconoFlecha}>
+              {!open ? <ChevronRightIcon /> : <ChevronLeftIcon />}
+            </IconButton>
+          </div>
+        <Drawer
+          variant="permanent"
+          classes={{
+            paper: clsx({
+              [classes.drawerOpen]: open,
+              [classes.drawerClose]: !open,
+            }),
+          }}
+        >
+        
+          <Divider />
+            <List className={classes.listaLogo}>
+                <ListItem button key={"Rinku"}>
+                    <ListItemIcon><img className={classes.imgLogo} src={logo} alt="logo" /></ListItemIcon>
+                    <ListItemText primary={"Rinku"} className={classes.txtEmpresa}/>
+                </ListItem>
+          </List>
+          <Divider />
+          <List className={classes.listaContenido}>
+            <ListItem button key={"Empleados"} onClick={this.handleClickEmpleado}>
+                <ListItemIcon><FaUserCircle className={classes.iconoMenu}/></ListItemIcon>
+                <ListItemText primary={"Empleados"} className={classes.txtMenu}/>
+                {openOption ? <ExpandLess className={classes.txtMenu}/> : <ExpandMore className={classes.txtMenu}/>}
+            </ListItem>
+            <Collapse in={openOption} timeout="auto" unmountOnExit>
+            <List component="div" disablePadding>
+                <ListItem button className={classes.contenedorSubMenu} onClick={() => {this.setState({btnOpciones: 1}); almacenarStorage(OPCIONMENU,1);}}>
+                    <ListItemText primary="Nuevo" className={classes.txtMenu}/>
+                </ListItem>
+                <ListItem button className={classes.contenedorSubMenu} onClick={() => {this.setState({btnOpciones: 2});almacenarStorage(OPCIONMENU,2);}}>
+                <ListItemText primary="Buscar" className={classes.txtMenu}/>
+                </ListItem>
+            </List>
+          </Collapse>
+            <ListItem button key={"Movimientos"} onClick={this.handleClickMovimiento}>
+                <ListItemIcon><FaClipboardList className={classes.iconoMenu}/></ListItemIcon>
+                <ListItemText primary={"Movimientos"} className={classes.txtMenu}/>
+                {openOptionM ? <ExpandLess className={classes.txtMenu}/> : <ExpandMore className={classes.txtMenu}/>}
+            </ListItem>
+            <Collapse in={openOptionM} timeout="auto" unmountOnExit>
+            <List component="div" disablePadding>
+              <ListItem button className={classes.contenedorSubMenu} onClick={() => {this.setState({btnOpciones: 3}); almacenarStorage(OPCIONMENU,3);}}>
+                <ListItemText primary="Nuevo" className={classes.txtMenu}/>
+              </ListItem>
+              <ListItem button className={classes.contenedorSubMenu} onClick={() => {this.setState({btnOpciones: 4}); almacenarStorage(OPCIONMENU,4);}}>
+                <ListItemText primary="Buscar" className={classes.txtMenu}/>
+              </ListItem>
+              <ListItem button className={classes.contenedorSubMenu} onClick={() => {this.setState({btnOpciones: 5}); almacenarStorage(OPCIONMENU,5);}}>
+                <ListItemText primary="Reporte" className={classes.txtMenu}/>
+              </ListItem>
+            </List>
+          </Collapse>
+          </List>
+          <Divider />
+          <ListItem button key={"CerrarSesion"} onClick={this.cerrarSesion}>
+            <ListItemIcon><FaSignOutAlt className={classes.iconoMenu}/></ListItemIcon>
+            <ListItemText primary={"Cerrar Sesión"} className={classes.txtMenu}/>
+          </ListItem>
+        </Drawer>
+        <main className={classes.content}>
+          <div className={classes.toolbar} />
+          <Grid container className={clsx(classes.contenedorOpciones,{[classes.contenedorOpcionesMenuAbierto]: open})}>
+            {btnOpciones === 1 &&(
+              <AltaEmpleado/>
+            )}
+            {btnOpciones === 2 &&(
+                <BuscarEmpleado/>
+            )}
+            {btnOpciones === 3 &&(
+                <AltaMovimiento/>
+            )}
+            {btnOpciones === 4 &&(
+                <BuscarMovimiento/>
+            )}
+            {btnOpciones === 5 &&(
+                <ReporteMovimiento/>
+            )}
+            {btnOpciones === 6 && (
+              <EditarEmpleado/>
+            )}
+            {btnOpciones === 7 &&(
+              <EditarMovimiento/>
+            )}
+          </Grid>
+        </main>
+      </div>
+      );
+    }
+};
+const mapStateToProps = (Usuario) => ({Usuario});
+
+const mapDispatchToProps = (dispatch) => ({
+  actions: {
+    usuario: bindActionCreators(UsuarioActions, dispatch),
+  },
+});
+
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(withStyles(useStyles,{ withTheme: true })(Menu)));

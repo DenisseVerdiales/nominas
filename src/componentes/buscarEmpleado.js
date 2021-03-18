@@ -60,7 +60,15 @@ const empleadoStyles = theme =>  ({
         paddingBottom:35
     },
     selectTipoEmp:{
-        width:"90%"
+        width:"90%",
+        [theme.breakpoints.down('sm')]: {
+            fontSize:12,
+            '& #noEmpleado-label':{
+                fontSize:12
+            }
+            
+        },
+        
     },
     contenedorBusq:{
         paddingTop:20
@@ -69,10 +77,12 @@ const empleadoStyles = theme =>  ({
         paddingBottom:35
     },
     btnEditar:{
-        fontSize:22
+        fontSize:22,
+        fill: '#09b5e2'
     },
     btnEliminar:{
-        fontSize:22
+        fontSize:22,
+        fill: '#bd2525'
     }
 })
 
@@ -110,6 +120,7 @@ class BuscarEmpleado extends Component {
             tipoEmpleado:[],
             rol:[],
             IdSeleccionado:'',
+            nombreSeleccionado:'',
             rolSeleccionado: 0,
             tipoSeleccionado: 0,
             empleadosLista:[]
@@ -146,6 +157,7 @@ class BuscarEmpleado extends Component {
                     swal("Empleado eliminado con éxito", {
                         icon: "success",
                     });
+                    this.consultarEmpleados();
                 })
                 .catch((error)=>{
                     if(error.response){
@@ -202,11 +214,32 @@ class BuscarEmpleado extends Component {
         .then(()=>{
             almacenarStorage(EMPLEADOSCONSULTADOS,true)
             .then(()=>{
-                this.obtenerCombos();
+                consultarStorage(COMBOSCONSULTADOS)
+                .then((valor)=>{
+                    if (valor != true && Object.getOwnPropertyNames(valor).length > 0) {
+                        this.obtenerCombos();
+                    }
+                })
             })
         })
         .catch((error)=>{
-            console.log("ERROR CONSULTAR EMPLEADO",error);
+            if(error.response){
+                if (error.response.status === 404) {
+                    swal({
+                        title: "",
+                        text: "No se encontraron empleados.",
+                        icon: "warning",
+                        button: "Aceptar",
+                    });
+                } else {
+                    swal({
+                        title: "",
+                        text: "Ocurrió un error al consultar los empleados. Intente más tarde.",
+                        icon: "error",
+                        button: "Aceptar",
+                    });
+                }
+            }
         })
     }
 
@@ -272,7 +305,6 @@ class BuscarEmpleado extends Component {
         Empleado.registroEmpleado.map((d,index)=>(
             datos.push(createData(d.id, d.nombreEmpleado, d.Rol.nombreRol, d.TipoEmpleado.tipoEmpleado))
         ))
-        console.log("datos",datos);
         this.setState({
             empleados: datos,
             empleadosLista: datos
@@ -310,8 +342,8 @@ class BuscarEmpleado extends Component {
     }
 
     filtroNoEmpleado(noEmpleado) {
-        const { empleados } = this.state;
-        const nuevoEmpleado = empleados.filter((item) =>
+        const { empleadosLista } = this.state;
+        const nuevoEmpleado = empleadosLista.filter((item) =>
           `${item.NumeroEmpleado}`.includes(noEmpleado)
         )
     
@@ -324,8 +356,8 @@ class BuscarEmpleado extends Component {
     }
 
     filtroNombreEmpleado(nombre) {
-        const { empleados } = this.state;
-        const nuevoEmpleado = empleados.filter((item) =>
+        const { empleadosLista } = this.state;
+        const nuevoEmpleado = empleadosLista.filter((item) =>
           `${item.Nombre}`.includes(nombre)
         )
     
@@ -437,16 +469,15 @@ class BuscarEmpleado extends Component {
                     <Typography className={classes.txtTitulo}>Busqueda de Empleados</Typography>
                     <Grid item lg={12} md={12} sm={12} xs={12} >
                         <Grid container className={classes.contenedorGeneral}>
-                            <Grid item lg={10} md={10} sm={12} xs={12} className={classes.contenedorBusq}>
+                            <Grid item lg={10} md={10} sm={10} xs={11} className={classes.contenedorBusq}>
                                 <Typography className={classes.txtTituloBusq}>Buscar Por:</Typography>
                                 <Grid container >
-                                    <Grid item lg={12} md={12} sm={12} xs={12} className={classes.contenedorBusqueda}>
+                                    <Grid item lg={12} md={10} sm={12} xs={12} className={classes.contenedorBusqueda}>
                                         <Grid item lg={4} md={4} sm={6} xs={12} >
                                             <TextField
                                                 id="noEmpleado"
                                                 name="noEmpleado"
                                                 inputProps={{ maxLength: 40 }}
-                                                required
                                                 className={classes.selectTipoEmp}
                                                 onChange={NoEmpleadoSeleccionado}
                                                 value={IdSeleccionado}
@@ -459,7 +490,6 @@ class BuscarEmpleado extends Component {
                                                 id="nombre"
                                                 name="nombre"
                                                 inputProps={{ maxLength: 40 }}
-                                                required
                                                 className={classes.selectTipoEmp}
                                                 onChange={NombreEmpleadoSeleccionado}
                                                 value={nombreSeleccionado}
@@ -474,7 +504,6 @@ class BuscarEmpleado extends Component {
                                                 labelId="demo-simple-select-label"
                                                 id="rol"
                                                 name="rol"
-                                                required
                                                 value={rolSeleccionado}
                                                 onChange={(id,d) => this.RolSeleccionado(id,d)}
                                                 >
@@ -492,7 +521,6 @@ class BuscarEmpleado extends Component {
                                                 labelId="demo-simple-select-label"
                                                 id="tipoEmpleados"
                                                 name="tipoEmpleados"
-                                                required
                                                 value={tipoSeleccionado}
                                                 onChange={(id,d) => this.TipoSeleccionado(id,d)}
                                                 >

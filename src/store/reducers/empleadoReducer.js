@@ -6,7 +6,9 @@ import {
     OBTENER_EMPLEADOS,
     ELIMINAR_EMPLEADO,
     OBTENER_EMPLEADOPORID,
-    ACTUALIZAR_EMPLEADO
+    ACTUALIZAR_EMPLEADO,
+    OBTENER_REPORTE,
+    OBTENERIDSIGUIENTE
   } from '../../constantes/types';
   
   const initialState = {
@@ -17,7 +19,9 @@ import {
     registroEmpleado:[],
     empleadoEliminado:[],
     empleadoPorId:{},
-    empleadoModificado:[]
+    empleadoModificado:[],
+    reporte:{},
+    suienteId:{}
   };
   const usuarioReducer = (state = initialState, action) => {
     switch (action.type) {
@@ -37,6 +41,10 @@ import {
         return { ...state, empleadoPorId: action.payload };
         case ACTUALIZAR_EMPLEADO:
           return { ...state, empleadoModificado: action.payload };
+        case OBTENER_REPORTE:
+          return { ...state, reporte: action.payload };
+        case OBTENERIDSIGUIENTE:
+          return { ...state, suienteId: action.payload };
         default:
             return state;
     }
