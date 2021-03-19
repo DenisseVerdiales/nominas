@@ -22,7 +22,7 @@ import * as MovimientoActions from '../store/Acciones/movimientosActions';
 import * as TipoBonoActions from '../store/Acciones/tipoBonoActions';
 import {SoloNumeros} from '../utilidades/validar';
 import { almacenarStorage, consultarObjetoStorage,consultarStorage } from '../utilidades/asyncStorage';
-import { CBOTIPOEMPLEADO,OBTENERBONOENTREGAS,CBOROL,COMBOSCONSULTADOS,OPCIONMENU,BONOPORENTREGA,IDMOVIMIENTO,ROL_AUXILIAR} from '../constantes/constantes';
+import { CBOTIPOEMPLEADO,OBTENERBONOENTREGAS,CBOROL,COMBOSCONSULTADOS,BONOPORENTREGA,IDMOVIMIENTO,ROL_AUXILIAR} from '../constantes/constantes';
 
 const movimientoStyles = theme =>  ({
     contenedor:{
@@ -103,11 +103,11 @@ class EditarMovimiento extends Component {
             bono:{},
             movimientoSeleccionado:{}
         };
+        this.cancelarEditarRegistro = this.cancelarEditarRegistro.bind(this);
     }
 
     componentDidMount() {
         this.consultarStorageCombos();
-        //this.consultarMovimienoIdStorage();
     }
 
     consultarMovimienoIdStorage(){
@@ -153,25 +153,15 @@ class EditarMovimiento extends Component {
                     chks:{chkCantidadEntregas:false, chkCubrioTurno: false},
                 },this.consultarBono())
             }
-        
         })
         .catch((error)=>{
-            if(error.response){
-                if (error.response.status === 404) {
-                    swal({
-                        title: "",
-                        text: "No existen los roles",
-                        icon: "warning",
-                        button: "Aceptar",
-                    });
-                } else {
-                    swal({
-                        title: "",
-                        text: "Ocurrió un error al consultar los roles. Intente más tarde.",
-                        icon: "error",
-                        button: "Aceptar",
-                    });
-                }
+            if(error.response.data){
+                swal({
+                    title: "",
+                    text: error.response.data.mensaje,
+                    icon: error.response.data.icono,
+                    button: "Aceptar",
+                });
             }
         })
     }
@@ -228,24 +218,22 @@ class EditarMovimiento extends Component {
                     almacenarStorage(COMBOSCONSULTADOS,true)
                     .then(()=>{
                         this.consultarMovimienoIdStorage();
-                        
                     })
-                    
                 })
                 .catch((error)=>{
                     if(error.response){
-                        if (error.response.status === 404) {
+                        if (error.response.data.status === 404) {
                             swal({
                                 title: "",
-                                text: "No existen los roles",
-                                icon: "warning",
+                                text: error.response.data.mensaje,
+                                icon: error.response.data.icono,
                                 button: "Aceptar",
                             });
                         } else {
                             swal({
                                 title: "",
-                                text: "Ocurrió un error al consultar los roles. Intente más tarde.",
-                                icon: "error",
+                                text: error.response.data.mensaje,
+                                icon: error.response.data.icono,
                                 button: "Aceptar",
                             });
                         }
@@ -253,18 +241,18 @@ class EditarMovimiento extends Component {
                 })
             }).catch((error)=>{
                 if(error.response){
-                    if (error.response.status === 404) {
+                    if (error.response.data.status === 404) {
                         swal({
                             title: "",
-                            text: "No existen las jornadas laborales",
-                            icon: "warning",
+                            text: error.response.data.mensaje,
+                            icon: error.response.data.icono,
                             button: "Aceptar",
                         });
                     } else {
                         swal({
                             title: "",
-                            text: "Ocurrió un error al consultar las jornadas laborales. Intente más tarde.",
-                            icon: "error",
+                            text: error.response.data.mensaje,
+                            icon: error.response.data.icono,
                             button: "Aceptar",
                         });
                     }
@@ -272,18 +260,18 @@ class EditarMovimiento extends Component {
             })
         }).catch((error)=>{
             if(error.response){
-                if (error.response.status === 404) {
+                if (error.response.data.status === 404) {
                     swal({
                         title: "",
-                        text: "No existen el tipo empleado",
-                        icon: "warning",
+                        text: error.response.data.mensaje,
+                            icon: error.response.data.icono,
                         button: "Aceptar",
                     });
                 } else {
                     swal({
                         title: "",
-                        text: "Ocurrió un error al consultar el tipo empleado. Intente más tarde.",
-                        icon: "error",
+                        text: error.response.data.mensaje,
+                        icon: error.response.data.icono,
                         button: "Aceptar",
                     });
                 }
@@ -299,14 +287,14 @@ class EditarMovimiento extends Component {
         })
     }
 
-    cancelarEditarRegistro(){
-        almacenarStorage(OPCIONMENU,4);
-        consultarStorage(OPCIONMENU)
+    cancelarEditarRegistro(opcion){
+        const{actions:{usuario}}=this.props;
+        usuario.guardarOpcionMenu(opcion);
     }
 
     valida = (e) => {
         e.preventDefault();
-        const { actions: { movimiento },Usuario } = this.props;
+        const { actions: { movimiento,usuario },Usuario } = this.props;
         const {movimientoSeleccionado,chks}=this.state;
         let vacio = {};
        
@@ -344,8 +332,8 @@ class EditarMovimiento extends Component {
                 if(resultado.status === 200){
                     swal({
                         title: "",
-                        text: "Movimiento guardado con éxito.",
-                        icon: "success",
+                        text: resultado.mensaje,
+                        icon: resultado.icono,
                         button: "Aceptar",
                     });
                     this.setState({
@@ -355,27 +343,19 @@ class EditarMovimiento extends Component {
                             chkCantidadEntregas:false,
                             chkCubrioTurno:false
                         }
-                    });
+                    },usuario.guardarOpcionMenu(4));
+                    
                 }
-                }
+            }
         })
         .catch((error)=>{
-            if(error.response){
-                if (error.response.status === 400) {
-                    swal({
-                        title: "",
-                        text: "El movimiento ingresado ya existe.",
-                        icon: "warning",
-                        button: "Aceptar",
-                    });
-                } else {
-                    swal({
-                        title: "",
-                        text: "Ocurrió un error al guardar el movimiento. Intente más tarde.",
-                        icon: "error",
-                        button: "Aceptar",
-                    });
-                }
+            if(error.status){
+                swal({
+                    title: "",
+                    text: error.mensaje,
+                    icon: error.icono,
+                    button: "Aceptar",
+                });
             }
         })
     }
@@ -404,19 +384,11 @@ class EditarMovimiento extends Component {
     render(){
         const {
             errores,
-            datos,
             fechaSeleccionada,
             chks, 
-            importeTotal,
-            nombreEmpleado,
-            apellidoPaterno,
-            apellidoMaterno,
             rolEmpleado,
             tipoEmpleado,
             rolCubrio,
-            rolEmpSelec,
-            tipoEmpSelec,
-            importeTotalRecorrido,
             movimientoSeleccionado
         } = this.state;
         const { classes} = this.props;
@@ -437,22 +409,13 @@ class EditarMovimiento extends Component {
                     });
                 })
                 .catch((error)=>{
-                    if(error){
-                        if(error.response.status === 404){
-                            swal({
-                                title: "",
-                                text: "Empleado no encontrado",
-                                icon: "warning",
-                                button: "Aceptar",
-                            });
-                        }else{
-                            swal({
-                                title: "",
-                                text: "Ocurrió un error al consultar el empleado",
-                                icon: "error",
-                                button: "Aceptar",
-                            });
-                        }
+                    if(error.status){
+                        swal({
+                            title: "",
+                            text: error.mensaje,
+                            icon: error.icono,
+                            button: "Aceptar",
+                        });
                     }
                 })
             }
@@ -702,7 +665,7 @@ class EditarMovimiento extends Component {
                                         <Button variant="contained" type="submit" className={classes.btnGuardar}>Guardar</Button>
                                     </Grid>
                                     <Grid item lg={6} md={6} sm={12} xs={12} >
-                                        <Button variant="contained" className={classes.btnCancelar}  onClick={this.cancelarEditarRegistro}>Cancelar</Button>
+                                        <Button variant="contained" className={classes.btnCancelar}  onClick={()=>this.cancelarEditarRegistro(4)}>Cancelar</Button>
                                     </Grid>
                                 </Grid>
                             </Grid>

@@ -27,8 +27,6 @@ import ReporteMovimiento from './reporteMovimiento';
 import EditarEmpleado from './editarEmpleado';
 import EditarMovimiento from './editarMovimiento';
 import * as UsuarioActions from '../store/Acciones/usuarioActions';
-import {consultarStorage,almacenarStorage } from '../utilidades/asyncStorage';
-import {OPCIONMENU} from '../constantes/constantes';
 
 const drawerWidth = 240;
 
@@ -166,14 +164,13 @@ class Menu extends Component {
         open: false,
         openOption: false,
         openOptionM:false,
-        btnOpciones: 0
     };
     this.cerrarSesion = this.cerrarSesion.bind(this);
   }
-  componentDidMount() {
-    this.obtenerOpcionMenu();
-  }
 
+    componentDidMount(){
+    this.obtenerOpcionMenu();
+    }
 
     handleDrawer = () => {
       const {open} = this.state;
@@ -191,12 +188,9 @@ class Menu extends Component {
     };
 
     obtenerOpcionMenu = () => {
-      consultarStorage(OPCIONMENU)
-        .then((valor) => {
-          if (valor !== null) {
-            this.setState({btnOpciones: Number.parseInt(valor)});
-          } 
-        });
+      const{actions:{usuario}}=this.props;
+      usuario.obtenerOpcionMenu();
+      
     }
 
     cerrarSesion(){
@@ -205,9 +199,9 @@ class Menu extends Component {
     }
 
     render(){
-      const {openOptionM,open,openOption,btnOpciones} = this.state;
-      const { classes} = this.props;
-
+      const {openOptionM,open,openOption} = this.state;
+      const { classes, Usuario, actions:{usuario}} = this.props;
+    
       return (
         <div className={classes.root}>
         <CssBaseline />
@@ -243,10 +237,10 @@ class Menu extends Component {
             </ListItem>
             <Collapse in={openOption} timeout="auto" unmountOnExit>
             <List component="div" disablePadding>
-                <ListItem button className={classes.contenedorSubMenu} onClick={() => {this.setState({btnOpciones: 1}); almacenarStorage(OPCIONMENU,1);}}>
+                <ListItem button className={classes.contenedorSubMenu} onClick={() =>  usuario.guardarOpcionMenu(1)}>
                     <ListItemText primary="Nuevo" className={classes.txtMenu}/>
                 </ListItem>
-                <ListItem button className={classes.contenedorSubMenu} onClick={() => {this.setState({btnOpciones: 2});almacenarStorage(OPCIONMENU,2);}}>
+                <ListItem button className={classes.contenedorSubMenu} onClick={() => usuario.guardarOpcionMenu(2)}>
                 <ListItemText primary="Buscar" className={classes.txtMenu}/>
                 </ListItem>
             </List>
@@ -258,13 +252,13 @@ class Menu extends Component {
             </ListItem>
             <Collapse in={openOptionM} timeout="auto" unmountOnExit>
             <List component="div" disablePadding>
-              <ListItem button className={classes.contenedorSubMenu} onClick={() => {this.setState({btnOpciones: 3}); almacenarStorage(OPCIONMENU,3);}}>
+              <ListItem button className={classes.contenedorSubMenu} onClick={() =>  usuario.guardarOpcionMenu(3)}>
                 <ListItemText primary="Nuevo" className={classes.txtMenu}/>
               </ListItem>
-              <ListItem button className={classes.contenedorSubMenu} onClick={() => {this.setState({btnOpciones: 4}); almacenarStorage(OPCIONMENU,4);}}>
+              <ListItem button className={classes.contenedorSubMenu} onClick={() =>  usuario.guardarOpcionMenu(4)}>
                 <ListItemText primary="Buscar" className={classes.txtMenu}/>
               </ListItem>
-              <ListItem button className={classes.contenedorSubMenu} onClick={() => {this.setState({btnOpciones: 5}); almacenarStorage(OPCIONMENU,5);}}>
+              <ListItem button className={classes.contenedorSubMenu} onClick={() =>  usuario.guardarOpcionMenu(5)}>
                 <ListItemText primary="Reporte" className={classes.txtMenu}/>
               </ListItem>
             </List>
@@ -279,25 +273,25 @@ class Menu extends Component {
         <main className={classes.content}>
           <div className={classes.toolbar} />
           <Grid container className={clsx(classes.contenedorOpciones,{[classes.contenedorOpcionesMenuAbierto]: open})}>
-            {btnOpciones === 1 &&(
+            {Number.parseInt(Usuario.Usuario.opcionMenu) === 1 &&(
               <AltaEmpleado/>
             )}
-            {btnOpciones === 2 &&(
+            {Number.parseInt(Usuario.Usuario.opcionMenu) === 2 &&(
                 <BuscarEmpleado/>
             )}
-            {btnOpciones === 3 &&(
+            {Number.parseInt(Usuario.Usuario.opcionMenu) === 3 &&(
                 <AltaMovimiento/>
             )}
-            {btnOpciones === 4 &&(
+            {Number.parseInt(Usuario.Usuario.opcionMenu) === 4 &&(
                 <BuscarMovimiento/>
             )}
-            {btnOpciones === 5 &&(
+            {Number.parseInt(Usuario.Usuario.opcionMenu) === 5 &&(
                 <ReporteMovimiento/>
             )}
-            {btnOpciones === 6 && (
+            {Number.parseInt(Usuario.Usuario.opcionMenu) === 6 && (
               <EditarEmpleado/>
             )}
-            {btnOpciones === 7 &&(
+            {Number.parseInt(Usuario.Usuario.opcionMenu) === 7 &&(
               <EditarMovimiento/>
             )}
           </Grid>

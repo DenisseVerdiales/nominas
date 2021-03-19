@@ -1,4 +1,4 @@
-import React,{Component,Fragment} from 'react';
+import React,{Component} from 'react';
 import { 
     Typography,
     Grid, 
@@ -137,32 +137,31 @@ class ReporteMovimiento extends Component {
         this.setState({errores: vacio});
         if(datosBusqueda.noEmpleado && datosBusqueda.mes){
 
-        const datos={
-            id: Number.parseInt(datosBusqueda.noEmpleado),
-            mes:datosBusqueda.mes
-        }
-        empleado.generarReporte(datos)
-        .then((resp)=>{
-            let reporte = {};
-            resp.map((d,index)=>(
-                reporte = {
-                    Nombre: d.Nombre, 
-                    BonoCubrirTurno: d.BonoCubrirTurno,
-                    BonoEntrega: d.BonoEntrega,
-                    BonoPuesto: d.BonoPuesto,
-                    SueldoBaseMensual:d.SueldoBaseMensual,
-                    SueldoMensualBruto: d.SueldoMensualBruto,
-                    SueldoNeto: d.SueldoNeto,
-                    SueldoNetoFinal: d.SueldoNetoFinal,
-                    horasLaborales: d.horasLaborales,
-                    nombreRol: d.nombreRol,
-                    tipoEmpleado:d.tipoEmpleado
-                }
-            ))
-            this.setState({datos: reporte});
-            
-
-        })
+            const datos={
+                id: Number.parseInt(datosBusqueda.noEmpleado),
+                mes:datosBusqueda.mes
+            }
+            empleado.generarReporte(datos)
+            .then((resp)=>{
+                let reporte = {};
+                resp.map((d,index)=>(
+                    reporte = {
+                        Nombre: d.Nombre, 
+                        BonoCubrirTurno: d.BonoCubrirTurno,
+                        BonoEntrega: d.BonoEntrega,
+                        BonoPuesto: d.BonoPuesto,
+                        SueldoBaseMensual:d.SueldoBaseMensual,
+                        SueldoMensualBruto: d.SueldoMensualBruto,
+                        SueldoNeto: d.SueldoNeto,
+                        SueldoNetoFinal: d.SueldoNetoFinal,
+                        horasLaborales: d.horasLaborales,
+                        nombreRol: d.nombreRol,
+                        tipoEmpleado:d.tipoEmpleado
+                    }
+                ))
+                this.setState({datos: reporte});
+                
+            })
         }
     }
 

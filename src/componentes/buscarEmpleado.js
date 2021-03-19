@@ -30,7 +30,6 @@ import {EMPLEADOSCONSULTADOS,
         COMBOSCONSULTADOS,
         CBOTIPOEMPLEADO,
         CBOROL,
-        OPCIONMENU,
         IDEMPLEADO
 } from '../constantes/constantes';
 
@@ -153,39 +152,38 @@ class BuscarEmpleado extends Component {
                     usuarioModificacionId: Usuario.usuarioLogin.id
                 }
                 empleado.eliminarEmpleados(empleadoDatos)
-                .then(()=>{
-                    swal("Empleado eliminado con éxito", {
-                        icon: "success",
-                    });
-                    this.consultarEmpleados();
+                .then((respuesta)=>{
+                    if(respuesta.status === 200){
+                        swal(respuesta.mensaje, {
+                            icon: respuesta.icono,
+                        });
+                        this.consultarEmpleados();
+                    }
+                   
                 })
                 .catch((error)=>{
-                    if(error.response){
-                        if (error.response.status === 404) {
-                            swal({
-                                title: "",
-                                text: "No se encontró el empleado.",
-                                icon: "warning",
-                                button: "Aceptar",
-                            });
-                        } else {
-                            swal({
-                                title: "",
-                                text: "Ocurrió un error al eliminar el empleado. Intente más tarde.",
-                                icon: "error",
-                                button: "Aceptar",
-                            });
-                        }
+                    if(error.response.data){
+                        swal({
+                            title: "",
+                            text: error.response.data.mensaje,
+                            icon: error.response.data.icono,
+                            button: "Aceptar",
+                        });
+                        
                     }
                 })
             } 
           });
     }
 
-    editarRegistro(dato){
-        almacenarStorage(IDEMPLEADO,dato.NumeroEmpleado);
-        almacenarStorage(OPCIONMENU,6);
-        
+    editarRegistro(e,dato){
+        e.preventDefault();
+        const {actions:{usuario}}=this.props;
+        usuario.guardarOpcionMenu(6)
+        .then(()=>{
+            almacenarStorage(IDEMPLEADO,dato.NumeroEmpleado);
+        })
+       
     }
 
     consultarStorageEmpleados(){
@@ -223,22 +221,13 @@ class BuscarEmpleado extends Component {
             })
         })
         .catch((error)=>{
-            if(error.response){
-                if (error.response.status === 404) {
-                    swal({
-                        title: "",
-                        text: "No se encontraron empleados.",
-                        icon: "warning",
-                        button: "Aceptar",
-                    });
-                } else {
-                    swal({
-                        title: "",
-                        text: "Ocurrió un error al consultar los empleados. Intente más tarde.",
-                        icon: "error",
-                        button: "Aceptar",
-                    });
-                }
+            if(error.response.data){
+                swal({
+                    title: "",
+                    text: error.response.data.mensaje,
+                    icon: error.response.data.icono,
+                    button: "Aceptar",
+                });
             }
         })
     }
@@ -358,7 +347,7 @@ class BuscarEmpleado extends Component {
     filtroNombreEmpleado(nombre) {
         const { empleadosLista } = this.state;
         const nuevoEmpleado = empleadosLista.filter((item) =>
-          `${item.Nombre}`.includes(nombre)
+          `${item.Nombre.toUpperCase()}`.includes(nombre.toUpperCase())
         )
     
         this.setState({
@@ -557,7 +546,7 @@ class BuscarEmpleado extends Component {
                                                     <StyledTableCell align="left">{row.Nombre}</StyledTableCell>
                                                     <StyledTableCell align="left">{row.Rol}</StyledTableCell>
                                                     <StyledTableCell align="center">{row.TipoEmpleado}</StyledTableCell>
-                                                    <StyledTableCell align="center"><a href="#" onClick={() => this.editarRegistro(row)}><MdModeEdit className={classes.btnEditar}/></a></StyledTableCell>
+                                                    <StyledTableCell align="center"><a href="#" onClick={(e) => this.editarRegistro(e,row)}><MdModeEdit className={classes.btnEditar}/></a></StyledTableCell>
                                                     <StyledTableCell align="center"><a href="#" onClick={() => this.eliminarRegistro(row)}><AiTwotoneDelete className={classes.btnEliminar}/></a></StyledTableCell>
                                                     </StyledTableRow>
                                                 )

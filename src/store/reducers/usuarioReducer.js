@@ -4,11 +4,13 @@ import {
     VALIDAR_SESION_LOCAL,
     START_AJAX,
     END_AJAX,
+    OBTENER_OPCIONMENU
   } from '../../constantes/types';
   
   const initialState = {
     usuarioLogin: {},
     ajax: 0,
+    opcionMenu:0
   };
   const usuarioReducer = (state = initialState, action) => {
     switch (action.type) {
@@ -18,6 +20,8 @@ import {
         return { ...state, usuarioLogin: {} };
       case VALIDAR_SESION_LOCAL:
         return { ...state, usuarioLogin: action.payload };
+      case OBTENER_OPCIONMENU:
+        return { ...state, opcionMenu: action.payload };
       case START_AJAX:
         return { ...state, ajax: state.ajax + 1 };
       case END_AJAX:

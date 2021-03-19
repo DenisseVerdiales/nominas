@@ -6,6 +6,7 @@ import {
   VALIDAR_SESION_LOCAL,
   START_AJAX,
   END_AJAX,
+  OBTENER_OPCIONMENU
 } from '../../constantes/types';
 import {
   BASE_SESION,
@@ -17,7 +18,7 @@ import {
   MOVIMIENTOSCONSULTADOS,
   OPCIONMENU
 } from '../../constantes/constantes';
-import { almacenarObjetoStorage, consultarObjetoStorage,almacenarStorage } from '../../utilidades/asyncStorage';
+import { almacenarObjetoStorage, consultarObjetoStorage,almacenarStorage, consultarStorage } from '../../utilidades/asyncStorage';
 import swal from 'sweetalert';
 
 
@@ -111,6 +112,23 @@ export const verificarSesionLocal = () => (dispatch) => new Promise((resolve, re
     });
     reject(error);
   });
+});
+
+export const guardarOpcionMenu = (opcion) => (dispatch) => new Promise((resolve, reject) => {
+  almacenarStorage(OPCIONMENU,opcion)
+      dispatch({ type: OBTENER_OPCIONMENU, payload: opcion });
+      resolve(true);
+});
+
+export const obtenerOpcionMenu = (opcion) => (dispatch) => new Promise((resolve, reject) => {
+  consultarStorage(OPCIONMENU)
+  .then((valor)=>{
+    if (valor !== null) {
+      dispatch({ type: OBTENER_OPCIONMENU, payload: valor });
+      resolve(true);
+    }
+  })
+    
 });
 
 

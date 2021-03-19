@@ -23,7 +23,6 @@ import * as UsuarioActions from '../store/Acciones/usuarioActions';
 import {soloLetras,SoloNumeros} from '../utilidades/validar';
 import {MOVIMIENTOSCONSULTADOS,
         OBTNERMOVIMIENTOS,
-        OPCIONMENU,
         IDMOVIMIENTO,
     } from '../constantes/constantes';
 import { almacenarStorage,consultarStorage,consultarObjetoStorage } from '../utilidades/asyncStorage';
@@ -109,7 +108,7 @@ class BuscarMovimiento extends Component {
             movimientosLista:[],
             IdSeleccionado:'',
             nombreSeleccionado:'',
-            entregasSeleccinadas:0,
+            entregasSeleccinadas:'',
             fecha: moment().format('YYYY-MM-DD'),
             FiltroFecha:[]
         };
@@ -170,22 +169,14 @@ class BuscarMovimiento extends Component {
             this.setState({movimientos: datos,movimientosLista: datos},this.obtenerStorageCboTipo);
         })
         .catch((error)=>{
-            if(error.response){
-                if (error.response.status === 404) {
-                    swal({
-                        title: "",
-                        text: "No existen movimientos.",
-                        icon: "warning",
-                        button: "Aceptar",
-                    });
-                } else {
-                    swal({
-                        title: "",
-                        text: "Ocurrió un error al consultar los movimientos. Intente más tarde.",
-                        icon: "error",
-                        button: "Aceptar",
-                    });
-                }
+            if(error.response.data){
+                swal({
+                    title: "",
+                    text: error.response.data.mensaje,
+                    icon: error.response.data.icono,
+                    button: "Aceptar",
+                });
+                
             }
         })
     }
@@ -208,8 +199,9 @@ class BuscarMovimiento extends Component {
           })
           .then((value) => {
             if (value) {
+                console.log("DATOS",value)
                 const movimientoDato = {
-                    id: value.NumeroEmpleado,
+                    id: value.NumeroMovimiento,
                     usuarioModificacionId: Usuario.usuarioLogin.id
                 }
                 movimiento.eliminarMovimiento(movimientoDato)
@@ -220,22 +212,14 @@ class BuscarMovimiento extends Component {
                     this.consultarMovimiento();
                 })
                 .catch((error)=>{
-                    if(error.response){
-                        if (error.response.status === 404) {
-                            swal({
-                                title: "",
-                                text: "No se encontró el empleado.",
-                                icon: "warning",
-                                button: "Aceptar",
-                            });
-                        } else {
-                            swal({
-                                title: "",
-                                text: "Ocurrió un error al eliminar el empleado. Intente más tarde.",
-                                icon: "error",
-                                button: "Aceptar",
-                            });
-                        }
+                    if(error.response.data){
+                        swal({
+                            title: "",
+                            text: error.response.data.mensaje,
+                            icon: error.response.data.icono,
+                            button: "Aceptar",
+                        });
+                        
                     }
                 })
             } 
@@ -247,7 +231,7 @@ class BuscarMovimiento extends Component {
         const nuevoMovimiento = movimientosLista.filter((item) =>
           `${item.NumeroEmpleado}`.includes(noEmpleado)
         )
-    
+  
         this.setState({
             movimientos: nuevoMovimiento
         });
@@ -259,7 +243,7 @@ class BuscarMovimiento extends Component {
     filtroNombreEmpleado(nombreEmpleado) {
         const { movimientosLista } = this.state;
         const nuevoMovimiento = movimientosLista.filter((item) =>
-          `${item.Nombre}`.includes(nombreEmpleado)
+          `${item.Nombre.toUpperCase()}`.includes(nombreEmpleado.toUpperCase())
         )
     
         this.setState({
@@ -272,10 +256,11 @@ class BuscarMovimiento extends Component {
 
     filtroEntregas(entregas) {
         const { movimientosLista } = this.state;
+        
         const nuevoMovimiento = movimientosLista.filter((item) =>
-          `${item.NoEntregas}`.includes(entregas)
+        `${item.NoEntregas}`.includes(entregas)
         )
-    
+       
         this.setState({
             movimientos: nuevoMovimiento
         });
@@ -294,9 +279,13 @@ class BuscarMovimiento extends Component {
         }
     }
 
-    editarRegistro(dato){
-        almacenarStorage(IDMOVIMIENTO,dato.NumeroMovimiento);
-        almacenarStorage(OPCIONMENU,7);
+    editarRegistro(e,dato){
+        e.preventDefault();
+        const {actions:{usuario}}=this.props;
+        usuario.guardarOpcionMenu(7)
+        .then(()=>{
+            almacenarStorage(IDMOVIMIENTO,dato.NumeroMovimiento);
+        })
     }
 
    
@@ -309,8 +298,7 @@ class BuscarMovimiento extends Component {
                 movimientos,
                 IdSeleccionado,
                 nombreSeleccionado,
-                entregasSeleccinadas,
-                fecha
+                entregasSeleccinadas
                 } = this.state;
 
         const handleChangePage = (event, newPage) => {
@@ -348,6 +336,7 @@ class BuscarMovimiento extends Component {
                 entregasSeleccinadas: Number.parseInt(e.target.value),
                 fechaSeleccionada: ''
             }); 
+            console.log("entregas",e.target.value)
             this.filtroEntregas(e.target.value); 
         }
 
@@ -413,7 +402,7 @@ class BuscarMovimiento extends Component {
                                                 inputProps={{ maxLength: 40 }}
                                                 className={classes.select}
                                                 onChange={EntregasSeleccionadas}
-                                                value={entregasSeleccinadas}
+                                                value={entregasSeleccinadas ? entregasSeleccinadas : ''}
                                                 label="Entregas"
                                                 onInput={SoloNumeros}
                                             /> 
@@ -461,7 +450,7 @@ class BuscarMovimiento extends Component {
                                                     <StyledTableCell align="left">{row.Nombre}</StyledTableCell>
                                                     <StyledTableCell align="left">{row.NoEntregas}</StyledTableCell>
                                                     <StyledTableCell align="center">{row.FechaMovimiento}</StyledTableCell>
-                                                    <StyledTableCell align="center"><a href="#" onClick={() => this.editarRegistro(row)}><MdModeEdit className={classes.btnEditar}/></a></StyledTableCell>
+                                                    <StyledTableCell align="center"><a href="#" onClick={(e) => this.editarRegistro(e,row)}><MdModeEdit className={classes.btnEditar}/></a></StyledTableCell>
                                                     <StyledTableCell align="center"><a href="#" onClick={() => this.eliminarRegistro(row)}><AiTwotoneDelete className={classes.btnEliminar}/></a></StyledTableCell>
                                                     </StyledTableRow>
                                                 )

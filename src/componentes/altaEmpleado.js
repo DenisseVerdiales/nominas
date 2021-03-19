@@ -86,7 +86,6 @@ class AltaEmpleado extends Component {
 
    componentDidMount() {
         this.consultarStorageCombos();
-      
     }
 
     consultarStorageCombos(){
@@ -100,12 +99,11 @@ class AltaEmpleado extends Component {
         });
     }
 
-    cancelarAlta(){
-        almacenarStorage(OPCIONMENU,0)
-        .then(()=>{
-            consultarStorage(OPCIONMENU)
-        })
+    cancelarAlta(opcion){
+        const{actions:{usuario}}=this.props;
+        usuario.guardarOpcionMenu(opcion);
     }
+
     obtenerSiguienteID(){
         const {actions:{empleado}} = this.props;
 
@@ -266,8 +264,8 @@ class AltaEmpleado extends Component {
                 if(resultado.status === 200){
                     swal({
                         title: "",
-                        text: "Empleado guardado con éxito.",
-                        icon: "success",
+                        text: resultado.mensaje,
+                        icon: resultado.icono,
                         button: "Aceptar",
                     });
                     this.setState({
@@ -278,22 +276,13 @@ class AltaEmpleado extends Component {
              }
          })
          .catch((error)=>{
-            if(error.response){
-                if (error.response.status === 400) {
-                    swal({
-                        title: "",
-                        text: "El empleado ingresado ya existe.",
-                        icon: "warning",
-                        button: "Aceptar",
-                    });
-                } else {
-                    swal({
-                        title: "",
-                        text: "Ocurrió un error al guardar el empleado. Intente más tarde.",
-                        icon: "error",
-                        button: "Aceptar",
-                    });
-                }
+            if(error.status){
+                swal({
+                    title: "",
+                    text: error.mensaje,
+                    icon: error.icono,
+                    button: "Aceptar",
+                });
             }
          })
         }
@@ -481,7 +470,7 @@ class AltaEmpleado extends Component {
                                 <Button variant="contained" type="submit" className={classes.btnGuardar}>Guardar</Button>
                             </Grid>
                             <Grid item lg={6} md={6} sm={12} xs={12} >
-                                <Button variant="contained" className={classes.btnCancelar} onClick={this.cancelarAlta} >Cancelar</Button>
+                                <Button variant="contained" className={classes.btnCancelar} onClick={() => this.cancelarAlta(0)} >Cancelar</Button>
                             </Grid>
                         </Grid>
                     </Grid>

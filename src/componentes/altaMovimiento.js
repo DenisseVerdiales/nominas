@@ -13,6 +13,7 @@ import {
 } from '@material-ui/core';
 import { withStyles } from '@material-ui/core/styles';
 import moment from "moment";
+import 'moment/locale/es';
 import swal from 'sweetalert';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -22,7 +23,7 @@ import * as MovimientoActions from '../store/Acciones/movimientosActions';
 import * as TipoBonoActions from '../store/Acciones/tipoBonoActions';
 import {SoloNumeros} from '../utilidades/validar';
 import { almacenarStorage, consultarObjetoStorage,consultarStorage } from '../utilidades/asyncStorage';
-import { CBOTIPOEMPLEADO,OBTENERBONOENTREGAS,CBOROL,COMBOSCONSULTADOS,OPCIONMENU,BONOPORENTREGA} from '../constantes/constantes';
+import { CBOTIPOEMPLEADO,OBTENERBONOENTREGAS,CBOROL,COMBOSCONSULTADOS,BONOPORENTREGA} from '../constantes/constantes';
 
 const movimientoStyles = theme =>  ({
     contenedor:{
@@ -164,28 +165,35 @@ class AltaMovimiento extends Component {
                     
                 })
                 .catch((error)=>{
-                    swal({
-                        title: "",
-                        text: error,
-                        icon: "error",
-                        button: "Aceptar",
-                    });
+                    if(error.response.data){
+                        swal({
+                            title: "",
+                            text: error.response.data.mensaje,
+                            icon: error.response.data.icono,
+                            button: "Aceptar",
+                        });
+                    }
+                    
                 })
             }).catch((error)=>{
-                swal({
-                    title: "",
-                    text: error,
-                    icon: "error",
-                    button: "Aceptar",
-                });
+                if(error.response.data){
+                    swal({
+                        title: "",
+                        text: error.response.data.mensaje,
+                        icon: error.response.data.icono,
+                        button: "Aceptar",
+                    });
+                }
             })
         }).catch((error)=>{
-            swal({
-                title: "",
-                text: error,
-                icon: "error",
-                button: "Aceptar",
-            });
+            if(error.response.data){
+                swal({
+                    title: "",
+                    text: error.response.data.mensaje,
+                    icon: error.response.data.icono,
+                    button: "Aceptar",
+                });
+            }
         })
     }
 
@@ -197,8 +205,9 @@ class AltaMovimiento extends Component {
         })
     }
 
-    cancelarAlta(){
-        almacenarStorage(OPCIONMENU,0);
+    cancelarAlta(opcion){
+        const{actions:{usuario}}=this.props;
+        usuario.guardarOpcionMenu(opcion);
     }
 
     consultarCombos(){
@@ -231,7 +240,7 @@ class AltaMovimiento extends Component {
         this.setState({errores:vacio})
         if(datos.noEmpleado){
             let rolCubiertoId = 0;
-            let cantEntregas=0;
+            let cantEntregas = 0;
             if((chks.chkCantidadEntregas && Number.parseInt(datos.CantEntregas)  > 0 ) || (chks.chkCubrioTurno && datos.rolTurno)){
                 rolCubiertoId = datos.rolTurno;
                 cantEntregas = datos.CantEntregas;
@@ -252,8 +261,8 @@ class AltaMovimiento extends Component {
                     if(resultado.status === 200){
                         swal({
                             title: "",
-                            text: "Empleado guardado con éxito.",
-                            icon: "success",
+                            text: resultado.mensaje,
+                            icon: resultado.icono,
                             button: "Aceptar",
                         });
                         this.setState({
@@ -272,22 +281,13 @@ class AltaMovimiento extends Component {
                  }
             })
             .catch((error)=>{
-                if(error.response){
-                    if (error.response.status === 400) {
-                        swal({
-                            title: "",
-                            text: "El movimiento ingresado ya existe.",
-                            icon: "warning",
-                            button: "Aceptar",
-                        });
-                    } else {
-                        swal({
-                            title: "",
-                            text: "Ocurrió un error al guardar el movimiento. Intente más tarde.",
-                            icon: "error",
-                            button: "Aceptar",
-                        });
-                    }
+                if(error.response.data){
+                    swal({
+                        title: "",
+                        text: error.response.data.mensaje,
+                        icon: error.response.data.icono,
+                        button: "Aceptar",
+                    });
                 }
             })
 
@@ -302,7 +302,6 @@ class AltaMovimiento extends Component {
             datos,
             fechaSeleccionada,
             chks, 
-            importeTotal,
             nombreEmpleado,
             apellidoPaterno,
             apellidoMaterno,
@@ -332,22 +331,14 @@ class AltaMovimiento extends Component {
                     });
                 })
                 .catch((error)=>{
-                    if(error){
-                        if(error.response.status === 404){
-                            swal({
-                                title: "",
-                                text: "Empleado no encontrado",
-                                icon: "warning",
-                                button: "Aceptar",
-                            });
-                        }else{
-                            swal({
-                                title: "",
-                                text: "Ocurrió un error al consultar el empleado",
-                                icon: "error",
-                                button: "Aceptar",
-                            });
-                        }
+                    if(error.response.data){
+                        swal({
+                            title: "",
+                            text: error.response.data.mensaje,
+                            icon: error.response.data.icono,
+                            button: "Aceptar",
+                        });
+                        
                     }
                 })
             }
@@ -357,9 +348,13 @@ class AltaMovimiento extends Component {
             const {datos,bono}=this.state;
             let datosInput = {...datos,[e.target.name]: e.target.value };
             this.setState({datos:datosInput});
-            if(e.target.name == 'CantEntregas'){
-                const importeEntrega = Number.parseInt(e.target.value ) * Number.parseInt(bono.importe);
-                this.setState({importeTotalRecorrido: importeEntrega});
+            if(e.target.name === 'CantEntregas'){
+                if(e.target.value !== ''){
+                    const importeEntrega = Number.parseInt(e.target.value ) * Number.parseInt(bono.importe);
+                    this.setState({importeTotalRecorrido: importeEntrega});
+                }else{
+                    this.setState({importeTotalRecorrido: 0});
+                }
             }
         }
         const fechaModificada = (value) => {
@@ -378,7 +373,7 @@ class AltaMovimiento extends Component {
 
             let check = {...chks,[e.target.name]: e.target.checked };
             this.setState({chks:check})
-            if(e.target.name == 'chkCantidadEntregas' ){
+            if(e.target.name === 'chkCantidadEntregas' ){
                 consultarObjetoStorage(OBTENERBONOENTREGAS)
                 .then((valor)=>{
                     if (valor === true && Object.getOwnPropertyNames(valor).length !== 0) {
@@ -595,7 +590,7 @@ class AltaMovimiento extends Component {
                                         <Button variant="contained" type="submit" className={classes.btnGuardar}>Guardar</Button>
                                     </Grid>
                                     <Grid item lg={6} md={6} sm={12} xs={12} >
-                                        <Button variant="contained" className={classes.btnCancelar} onClick={this.cancelarAlta}>Cancelar</Button>
+                                        <Button variant="contained" className={classes.btnCancelar} onClick={() => this.cancelarAlta(0)}>Cancelar</Button>
                                     </Grid>
                                 </Grid>
                             </Grid>

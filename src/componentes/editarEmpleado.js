@@ -75,8 +75,9 @@ class EditarEmpleado extends Component {
             jornada:[],
             rol:[],
             empleadoSeleccionado:{},
-            siguienteID:''
+            
         };
+        
     }
 
     componentDidMount() {
@@ -158,7 +159,7 @@ class EditarEmpleado extends Component {
             tipoEmpleado: Empleado.tipoEmpleado,
             jornada: Empleado.jornadaLaboral,
             rol: Empleado.rol
-        },this.obtenerSiguienteID);
+        });
     }
 
     obtenerStorageCboTipo() {
@@ -217,21 +218,9 @@ class EditarEmpleado extends Component {
         })
     }
 
-    obtenerSiguienteID(){
-        const {actions:{empleado}} = this.props;
-
-        empleado.obtenerEmpleadoId()
-        .then((dato)=>{
-            dato.map((d,index)=>{
-                this.setState({siguienteID: Object.values(d)})
-            })
-            
-        })
-    }
-
     valida = (e) => {
         e.preventDefault();
-        const { actions: { empleado },Usuario } = this.props;
+        const { actions: { empleado,usuario },Usuario } = this.props;
         const {empleadoSeleccionado}=this.state;
         let vacio = {};
         if(!empleadoSeleccionado.nombre){
@@ -276,41 +265,38 @@ class EditarEmpleado extends Component {
                 if(resultado.status === 200){
                     swal({
                         title: "",
-                        text: "Empleado guardado con éxito.",
-                        icon: "success",
+                        text: resultado.mensaje,
+                        icon: resultado.icono,
                         button: "Aceptar",
                     });
                     this.setState({
                         empleadoSeleccionado:{},
                         fechaSeleccionada: moment().format("YYYY-MM-DD")
-                    });
+                    }, usuario.guardarOpcionMenu(2));
+                   
                 }
              }
          })
          .catch((error)=>{
-            if(error.response){
-                if (error.response.status === 400) {
-                    swal({
-                        title: "",
-                        text: "El empleado ingresado ya existe.",
-                        icon: "warning",
-                        button: "Aceptar",
-                    });
-                } else {
-                    swal({
-                        title: "",
-                        text: "Ocurrió un error al guardar el empleado. Intente más tarde.",
-                        icon: "error",
-                        button: "Aceptar",
-                    });
-                }
+            if(error.response.data){
+                swal({
+                    title: "",
+                    text: error.response.data.mensaje,
+                    icon: error.response.data.icono,
+                    button: "Aceptar",
+                });
             }
          })
         }
     }
 
+    cancelarEditarRegistro(opcion){
+        const{actions:{usuario}}=this.props;
+        usuario.guardarOpcionMenu(opcion);
+    }
+
     render(){
-        const {errores,tipoEmpleado,jornada,rol, empleadoSeleccionado, siguienteID} = this.state;
+        const {errores,tipoEmpleado,jornada,rol, empleadoSeleccionado} = this.state;
         const { classes} = this.props;
 
         const handleChange = (e) => {
@@ -341,7 +327,7 @@ class EditarEmpleado extends Component {
                                         name="noEmpleado"
                                         disabled={true}
                                         className={classes.selectTipoEmp}
-                                        value={siguienteID[0] ? siguienteID[0]+1 : 0}
+                                        value={empleadoSeleccionado.id ? empleadoSeleccionado.id : 0}
                                         label="Número de Empleado"
                                     />
                                 </Grid>
@@ -487,7 +473,7 @@ class EditarEmpleado extends Component {
                                         <Button variant="contained" type="submit" className={classes.btnGuardar}>Guardar</Button>
                                     </Grid>
                                     <Grid item lg={6} md={6} sm={12} xs={12} >
-                                        <Button variant="contained" className={classes.btnCancelar}>Cancelar</Button>
+                                        <Button variant="contained" className={classes.btnCancelar} onClick={()=>this.cancelarEditarRegistro(2)}>Cancelar</Button>
                                     </Grid>
                                 </Grid>
                             </Grid>

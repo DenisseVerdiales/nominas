@@ -28,6 +28,7 @@ import {
     URL_IDSIGUIENTE
 } from '../../constantes/constantes';
 import { almacenarObjetoStorage } from '../../utilidades/asyncStorage';
+import swal from 'sweetalert';
 
   export const guardarEmpleado = (empleado) => (dispatch) => {
     dispatch({ type: START_AJAX });
@@ -172,7 +173,7 @@ import { almacenarObjetoStorage } from '../../utilidades/asyncStorage';
           .delete(BASE_EMPLEADO + empleado.id +'/'+empleado.usuarioModificacionId)
           .then(({ data }) => {
             dispatch({ type: ELIMINAR_EMPLEADO, payload: data });
-            resolve();
+            resolve(data);
           })
           .catch((error) => {
             reject(error);
@@ -225,12 +226,22 @@ import { almacenarObjetoStorage } from '../../utilidades/asyncStorage';
         axiosConfig
           .get(`${BASE_EMPLEADO}${URL_REPORTE}`, {params:{pIdEmpleado: JSON.stringify(empleado.id), pMes:  JSON.stringify(empleado.mes)}})
           .then(({ data }) => {
+            console.log("data",data)
             almacenarObjetoStorage(DATOS_REPORTE,data);
             dispatch({ type: OBTENER_REPORTE, payload: data });
             resolve(data);
+            
           })
           .catch((error) => {
-            reject(error);
+            if(error.response){
+                  swal({
+                      title: "",
+                      text: error.response.data.mensaje ,
+                      icon: error.response.data.icono,
+                      button: "Aceptar",
+                  });
+            }
+            reject();
           })
           .finally(() => dispatch({ type: END_AJAX }));
       },
